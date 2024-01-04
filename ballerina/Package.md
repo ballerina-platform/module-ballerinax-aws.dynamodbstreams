@@ -2,13 +2,13 @@ Connects to AWS DynamoDB from Ballerina
 
 ## Package overview
 
-The `ballerinax/aws.dynamodb` is a [Ballerina](https://ballerina.io/) connector for AWS DynamoDB. It is comprised of the following capabilities.
-* Perform AWS DynamoDB related operations programmatically. The `ballerinax/aws.dynamodb` module provides this capability.
+The `ballerinax/aws.dynamodbstreams` is a [Ballerina](https://ballerina.io/) connector for AWS DynamoDB. It is comprised of the following capabilities.
+* Perform AWS DynamoDB related operations programmatically. The `ballerinax/aws.dynamodbstreams` module provides this capability.
 
 ### Compatibility
 |                       | Version            |  
 |-----------------------|--------------------|
-| Ballerina Language    | Swan Lake 2201.3.0 |
+| Ballerina Language    | Swan Lake 2201.8.x |
 | Amazon DynamoDB API   | 20120810           |
 
 ## Report issues
