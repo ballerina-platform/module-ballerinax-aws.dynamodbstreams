@@ -36,12 +36,12 @@ dynamodbstreams:Client amazonDynamoDBClient = check new(amazonDynamodbConfig);
 1. Now you can use the operations available within the connector. Note that they are in the form of remote operations.  
 Following is an example on how to describe a stream in DynamoDB streams using the connector.
 
-    ```ballerina
-    public function main() returns error? {
-        dynamodbstreams:DescribeStreamInput describeStreamInput = {
-            streamArn: "arn:aws:dynamodb:us-east-1:134633749276:table/TestStreamTable/stream/2024-01-04T04:43:13.919"
-        };
-        dynamodbstreams:StreamDescription response = check dynamoDBStreamClient->describeStream(describeStreamInput);
-    }
-    ```
+```ballerina
+public function main() returns error? {
+    dynamodbstreams:DescribeStreamInput describeStreamInput = {
+        streamArn: "arn:aws:dynamodb:us-east-1:134633749276:table/TestStreamTable/stream/2024-01-04T04:43:13.919"
+    };
+    dynamodbstreams:StreamDescription response = check dynamoDBStreamClient->describeStream(describeStreamInput);
+}
+```
 2. Use `bal run` command to compile and run the Ballerina program.

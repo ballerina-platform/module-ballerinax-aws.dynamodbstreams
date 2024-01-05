@@ -17,10 +17,8 @@
 import ballerina/http;
 import ballerinax/'client.config;
 
-# The Ballerina AWS DynamoDB connector provides the capability to access AWS Simple Email Service related operations.
-# This connector lets you to to send email messages to your customers.
-#
-@display {label: "Amazon DynamoDB", iconPath: "icon.png"}
+# The Ballerina AWS DynamoDB Streams connector provides the capability to access AWS DynamoDb Streams related operations.
+@display {label: "Amazon DynamoDB Streams", iconPath: "icon.png"}
 public isolated client class Client {
     private final http:Client awsDynamoDb;
     private final string accessKeyId;

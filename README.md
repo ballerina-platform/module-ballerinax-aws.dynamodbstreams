@@ -7,7 +7,7 @@
 
 [Amazon DynamoDB](https://aws.amazon.com/dynamodb/) is a fully managed, serverless, key-value NoSQL database designed to run high-performance applications at any scale. DynamoDB offers built-in security, continuous backups, automated multi-region replication, in-memory caching, and data export tools.
 
-The connector provides the capability to programmatically handle AWS DynamoDB related operations.
+The connector provides the capability to programmatically handle AWS DynamoDB Streams related operations.
 
 For more information, go to the module(s).
 - [aws.dynamodbstreams](./Module.md)
@@ -44,7 +44,7 @@ To invoke the DynamoDB REST API, you need AWS credentials. Below is a step-by-st
 
 ## Quickstart
 
-**Note**: Ensure you follow the [prerequisites](https://github.com/ballerina-platform/module-ballerinax-aws.dynamodb#set-up-dynamodb-credentials) to get the credentials to be used.
+**Note**: Ensure you follow the [prerequisites](https://github.com/ballerina-platform/module-ballerinax-aws.dynamodbstreams#set-up-dynamodb-credentials) to get the credentials to be used.
 
 To use the `dynamodbstreams` connector in your Ballerina application, modify the `.bal` file as follows:
 
@@ -65,29 +65,29 @@ dynamodbstreams:ConnectionConfig amazonDynamodbConfig = {
     region: "REGION"
 };
 
-dynamodbstreams:Client amazonDynamodbClient = check new (amazonDynamodbConfig);
+dynamodbstreams:Client amazonDynamodbClient = check new(amazonDynamodbConfig);
 ```
 
 ### Step 3: Invoke connector operation
 1. Now you can use the operations available within the connector. Note that they are in the form of remote operations.  
-Following is an example on how to describe a stream in DynamoDB streams using the connector.
+Following is an example of how to describe a stream in DynamoDB streams using the connector.
 
-    ```ballerina
-    public function main() returns error? {
-        dynamodbstreams:DescribeStreamInput describeStreamInput = {
-            streamArn: "arn:aws:dynamodb:us-east-1:134633749276:table/TestStreamTable/stream/2024-01-04T04:43:13.919"
-        };
-        dynamodbstreams:StreamDescription response = check dynamoDBStreamClient->describeStream(describeStreamInput);
-    }
-    ```
+```ballerina
+public function main() returns error? {
+   dynamodbstreams:DescribeStreamInput describeStreamInput = {
+      streamArn: "arn:aws:dynamodb:us-east-1:134633749276:table/TestStreamTable/stream/2024-01-04T04:43:13.919"
+   };
+   dynamodbstreams:StreamDescription response = check dynamoDBStreamClient->describeStream(describeStreamInput);
+}
+```
 2. Use `bal run` command to compile and run the Ballerina program.
 
 
 ## Examples
 
-The `dynamodb` connector provides practical examples illustrating usage in various scenarios. Explore these [examples](https://github.com/ballerina-platform/module-ballerinax-aws.dynamodbstreams/tree/master/examples).
+The `dynamodbstreams` connector provides practical examples illustrating usage in various scenarios. Explore these [examples](https://github.com/ballerina-platform/module-ballerinax-aws.dynamodbstreams/tree/master/examples).
 
-1. [Real-time order processing](https://github.com/ballerina-platform/module-ballerinax-aws.dynamodb/tree/master/examples/order-management/client.bal)
+1. [Real-time order processing](https://github.com/ballerina-platform/module-ballerinax-aws.dynamodbstreams/tree/master/examples/order-management/client.bal)
     A real-time order processing system.
 
 For comprehensive information about the connector's functionality, configuration, and usage in Ballerina programs, refer to the `dynamodbstreams` connector's reference guide in [Ballerina Central](https://central.ballerina.io/ballerinax/aws.dynamodbstreams/latest).
