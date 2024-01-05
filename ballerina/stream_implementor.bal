@@ -1,4 +1,4 @@
-// Copyright (c) 2023 WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+// Copyright (c) 2024 WSO2 LLC. (http://www.wso2.org) All Rights Reserved.
 //
 // WSO2 Inc. licenses this file to you under the Apache License,
 // Version 2.0 (the "License"); you may not use this file except
@@ -15,7 +15,6 @@
 // under the License.
 
 import ballerina/http;
-import ballerina/io;
 
 class ListStream {
     private Stream[] currentEntries = [];
@@ -65,7 +64,6 @@ class ListStream {
         };
         json payload = check request.cloneWithType(json);
         convertJsonKeysToUpperCase(payload);
-        io:println(payload);
         map<string> signedRequestHeaders = check getSignedRequestHeaders(self.awsHost, self.accessKeyId,
                                                                          self.secretAccessKey, self.region,
                                                                          POST, self.uri, target, payload);                                 
@@ -126,7 +124,6 @@ class RecordsStream {
     }
 
     isolated function fetchRecords() returns Record[]|error {
-        io:println("called fetch records");
         string target = STREAMS_VERSION + DOT +"GetRecords";
         GetRecordsInput request = self.getRecordsInput;
         json payload = check request.cloneWithType(json);
