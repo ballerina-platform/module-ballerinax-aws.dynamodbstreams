@@ -36,6 +36,8 @@ public function main() returns error? {
     };  
     while true {
         stream<dynamodbstreams:Record, error?> result = check dynamodbStreamsClient->getRecords(getRecordsInput);
-        io:println(result);
+        check result.forEach(function(dynamodbstreams:Record srecord) {
+            io:println(result);
+        });
     }
 }
