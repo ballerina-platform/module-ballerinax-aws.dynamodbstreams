@@ -24,6 +24,8 @@ configurable string secretAccessKey = os:getEnv("SECRET_ACCESS_KEY");
 configurable string region = os:getEnv("REGION");
 
 final string mainTable = "TestStreamTable";
+final string streamArn = "arn:aws:dynamodb:us-east-1:134633749276:table/TestStreamTable/stream/2024-01-04T04:43:13.919";
+final dynamodb:Client dynamodbClient = check new(config);
 
 ConnectionConfig config = {
     awsCredentials: {accessKeyId: accessKeyId, secretAccessKey: secretAccessKey},
@@ -47,7 +49,7 @@ function testStreamsList() returns error? {
 @test:Config{}
 function testDescribeStreams() returns error? {
     DescribeStreamInput describeStream = {
-        streamArn: "arn:aws:dynamodb:us-east-1:134633749276:table/TestStreamTable/stream/2024-01-04T04:43:13.919"
+        streamArn: streamArn
     };
     StreamDescription response = check dynamoDBStreamClient->describeStream(describeStream);
     test:assertEquals(response.tableName, mainTable);
@@ -56,7 +58,6 @@ function testDescribeStreams() returns error? {
 
 @test:Config{}
 function testGetRecords() returns error? {
-    dynamodb:Client dynamodbClient = check new(config);
     dynamodb:ItemCreateInput request = {
         tableName: mainTable,
         item: {
@@ -99,10 +100,10 @@ function testGetRecords() returns error? {
     _ = check dynamodbClient->createItem(request);
 
     DescribeStreamInput describeStream = {
-        streamArn: "arn:aws:dynamodb:us-east-1:134633749276:table/TestTable/stream/2023-11-17T09:36:43.853"
+        streamArn: streamArn
     };
     StreamDescription response = check dynamoDBStreamClient->describeStream(describeStream);
-    io:println("describe stream: " + response.toString());
+    test:assertEquals(response.tableName, mainTable);
     string shardId = "";
     Shard[]? shards = response.shards;
     test:assertTrue(shards is Shard[]);
@@ -112,17 +113,21 @@ function testGetRecords() returns error? {
     GetShardsIteratorInput shardIteratorReq = {
         shardIteratorType: TRIM_HORIZON, 
         shardId: shardId, 
-        streamArn: "arn:aws:dynamodb:us-east-1:134633749276:table/TestTable/stream/2023-11-17T09:36:43.853"
+        streamArn: streamArn
     };
     GetShardsIteratorOutput shardIterator = check dynamoDBStreamClient->getShardIterator(shardIteratorReq);
+    test:assertFalse(shardIterator.shardIterator is "");
     GetRecordsInput getRecordsInput = {
         shardIterator: shardIterator.shardIterator
     };
-    io:println("getRecordsInput: " + getRecordsInput.toString());
     stream<Record, error?> streamResult = check dynamoDBStreamClient->getRecords(getRecordsInput);
     check streamResult.forEach(function(Record srecord) {
-        io:println("record: " + srecord.toString());
+        test:assertEquals(srecord.eventSource, "aws:dynamodb");
     });
+}
+
+@test:AfterSuite
+function deleteUpdatedItem() returns error? {
     dynamodb:ItemDeleteInput delRequest = {
         tableName: mainTable,
         'key: {
