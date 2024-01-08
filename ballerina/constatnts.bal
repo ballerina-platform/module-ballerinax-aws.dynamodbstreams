@@ -17,7 +17,6 @@
 const string AWS_HOST = "amazonaws.com";
 const string AWS_SERVICE = "dynamodb";
 const string AWS_STREAMS_SERVICE = "streams.dynamodb";
-const string VERSION = "DynamoDB_20120810";
 const string STREAMS_VERSION = "DynamoDBStreams_20120810";
 
 const string UTF_8 = "UTF-8";
