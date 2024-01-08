@@ -59,30 +59,44 @@ const string HEADER_AUTHORIZATION = "Authorization";
 
 const string GENERATE_SIGNED_REQUEST_HEADERS_FAILED_MSG = "Error occurred while generating signed request headers.";
 
-public enum AttributeType {
-    S, N, B
-}
-
+# The role that this key attribute will assume.
 public enum KeyType {
-    HASH, RANGE
+    # The partition key
+    HASH, 
+    # The sort key
+    RANGE
 }
 
-public enum SSEType {
-    AES256, KMS
-}
-
+# The format of the records within this stream
 public enum StreamViewType {
-    NEW_IMAGE, OLD_IMAGE, NEW_AND_OLD_IMAGES, KEYS_ONLY
+    # The entire item, as it appeared after it was modified
+    NEW_IMAGE, 
+    # The entire item, as it appeared before it was modified
+    OLD_IMAGE, 
+    # Both the new and the old item images of the item
+    NEW_AND_OLD_IMAGES, 
+    # Only the key attributes of the modified item
+    KEYS_ONLY
 }
 
+# The current state of the stream
 public enum StreamStatus {
-    ENABLING, ENABLED, DISABLING, DISABLED
+    # The stream is being created
+    ENABLING, 
+    # The stream is enabled
+    ENABLED, 
+    # The stream is being deleted
+    DISABLING,
+    # The stream is disabled 
+    DISABLED
 }
 
+# The type of action.
 public enum eventName {
-    INSERT, MODIFY, REMOVE
-}
-
-public enum ShardIteratorType {
-    TRIM_HORIZON, LATEST, AT_SEQUENCE_NUMBER, AFTER_SEQUENCE_NUMBER
+    # A new item was added to the table
+    INSERT, 
+    # An item was modified
+    MODIFY, 
+    # An item was deleted from the table
+    REMOVE
 }

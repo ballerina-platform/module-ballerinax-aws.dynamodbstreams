@@ -41,12 +41,12 @@ class ListStream {
     }
 
     public isolated function next() returns record {| Stream value; |}|error? {
-        if (self.index < self.currentEntries.length()) {
+        if self.index < self.currentEntries.length() {
             record {| Stream value; |} 'stream = {value: self.currentEntries[self.index]};
             self.index += 1;
             return 'stream;
         }
-        if (self.lastEvaluatedStreamArn is string) {
+        if self.lastEvaluatedStreamArn is string {
             self.index = 0;
             self.currentEntries = check self.fetchStreams();
             record {| Stream value; |} streamName = {value: self.currentEntries[self.index]};
@@ -104,12 +104,12 @@ class RecordsStream {
     }
 
     public isolated function next() returns record {| Record value; |}|error? {
-        if (self.index < self.currentEntries.length()) {
+        if self.index < self.currentEntries.length() {
             record {| Record value; |} 'record = {value: self.currentEntries[self.index]};
             self.index += 1;
             return 'record;
         }
-        if (self.nextShardIterator is string) {
+        if self.nextShardIterator is string {
             self.index = 0;
             Record[]|error fetchRecordsResult = self.fetchRecords();
             if fetchRecordsResult is Record[] && fetchRecordsResult.length() > 0 {
