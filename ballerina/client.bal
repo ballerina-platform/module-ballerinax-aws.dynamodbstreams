@@ -17,7 +17,7 @@
 import ballerina/http;
 import ballerinax/'client.config;
 
-# The Ballerina AWS DynamoDB Streams connector provides the capability to access AWS DynamoDb Streams related operations.
+# The Ballerina AWS DynamoDB Streams connector provides the capability to access AWS DynamoDB Streams related operations.
 @display {label: "Amazon DynamoDB Streams", iconPath: "icon.png"}
 public isolated client class Client {
     private final http:Client awsDynamoDb;
@@ -32,8 +32,7 @@ public isolated client class Client {
     # Create an AWS account and obtain tokens following
     # [this guide](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_access-keys.html).
     #
-    # + awsDynamoDBConfig - Configuration required to initialize the client
-    # + httpConfig - HTTP configuration
+    # + config - Configuration required to initialize the client
     # + return - An error on failure of initialization or else `()`
     public isolated function init(ConnectionConfig config) returns error? {
         self.accessKeyId = config.awsCredentials.accessKeyId;
