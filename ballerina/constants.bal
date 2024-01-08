@@ -100,3 +100,15 @@ public enum eventName {
     # An item was deleted from the table
     REMOVE
 }
+
+# The type of the shard.
+public enum ShardIteratorType {
+    # Start reading at the last untrimmed record in the shard in the system, which is the oldest data record in the shard
+    TRIM_HORIZON, 
+    # Start reading just after the most recent record in the shard, so that you always read the most recent data in the shard
+    LATEST, 
+    # Start reading exactly from the position denoted by a specific sequence number
+    AT_SEQUENCE_NUMBER, 
+    # Start reading right after the position denoted by a specific sequence number
+    AFTER_SEQUENCE_NUMBER
+}
