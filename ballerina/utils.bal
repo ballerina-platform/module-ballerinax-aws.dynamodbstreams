@@ -55,7 +55,7 @@ isolated function getSignedRequestHeaders(string host, string accessKey, string 
     string|error amzDate = utcToString(currentTime, ISO8601_BASIC_DATE_FORMAT);
     string|error dateStamp = utcToString(currentTime, SHORT_DATE_FORMAT);
 
-    if (amzDate is string && dateStamp is string) {
+    if amzDate is string && dateStamp is string {
         string canonicalQuerystring = EMPTY_STRING;
 
         string canonicalHeaders = CONTENT_TYPE + COLON + content_type + NEW_LINE +HOST + COLON + host + NEW_LINE + 
@@ -91,9 +91,9 @@ isolated function getSignedRequestHeaders(string host, string accessKey, string 
                 
         return headers;
     } else {
-        if (amzDate is error) {
+        if amzDate is error {
             return error(GENERATE_SIGNED_REQUEST_HEADERS_FAILED_MSG, amzDate);
-        } else if (dateStamp is error) {
+        } else if dateStamp is error {
             return error (GENERATE_SIGNED_REQUEST_HEADERS_FAILED_MSG, dateStamp);
         } else {
             return error (GENERATE_SIGNED_REQUEST_HEADERS_FAILED_MSG);
@@ -135,19 +135,19 @@ isolated function convertJsonKeysToCamelCase(json req) {
     map<json> mapValue = <map<json>>req;
     foreach var [key, value] in mapValue.entries() {
         string converted = lowercaseFirstLetter(key);
-        if (converted != key) {
+        if converted != key {
             any|error removeResult = mapValue.remove(key);
             mapValue[converted] = value;
         }
-        if (value is json[]) {
+        if value is json[] {
             json[] innerJson = <json[]>mapValue[converted];
             foreach var item in innerJson {
                 // assume no arrays inside array
-                if (item is map<json>) {
+                if item is map<json> {
                     convertJsonKeysToCamelCase(item);
                 }
             }
-        } else if (value is map<json>) {
+        } else if value is map<json> {
             convertJsonKeysToCamelCase(value);
         }
     }
@@ -163,19 +163,19 @@ isolated function convertJsonKeysToUpperCase(json req) {
     map<json> mapValue = <map<json>>req;
     foreach var [key, value] in mapValue.entries() {
         string converted = uppercaseFirstLetter(key);
-        if (converted != key) {
+        if converted != key {
             any|error removeResult = mapValue.remove(key);
             mapValue[converted] = value;
         }
-        if (value is json[]) {
+        if value is json[] {
             json[] innerJson = <json[]>mapValue[converted];
             foreach var item in innerJson {
                 // assume no arrays inside array
-                if (item is map<json>) {
+                if item is map<json> {
                     convertJsonKeysToUpperCase(item);
                 }
             }
-        } else if (value is map<json>) {
+        } else if value is map<json> {
             convertJsonKeysToUpperCase(value);
         }
     }
