@@ -33,30 +33,8 @@ ConnectionConfig config = {
 
 Client dynamoDBStreamClient = check new (config);
 
-@test:Config{}
-function testStreamsList() returns error? {
-    ListStreamsInput listStreamsInput = {
-        tableName: mainTable,
-        'limit: 1
-    };
-    stream<Stream,error?> response = check dynamoDBStreamClient->listStreams(listStreamsInput);
-    check response.forEach(function(Stream resp) {
-        test:assertEquals(resp.tableName, mainTable);
-    });                     
-}
-
-@test:Config{}
-function testDescribeStreams() returns error? {
-    DescribeStreamInput describeStream = {
-        streamArn: streamArn
-    };
-    StreamDescription response = check dynamoDBStreamClient->describeStream(describeStream);
-    test:assertEquals(response.tableName, mainTable);
-    test:assertEquals(response.streamStatus, "ENABLED");
-}
-
-@test:Config{}
-function testGetRecords() returns error? {
+@test:BeforeSuite
+function updateItem() returns error? {
     dynamodb:ItemCreateInput request = {
         tableName: mainTable,
         item: {
@@ -97,7 +75,32 @@ function testGetRecords() returns error? {
         }
     };
     _ = check dynamodbClient->createItem(request);
+}
 
+@test:Config{}
+function testStreamsList() returns error? {
+    ListStreamsInput listStreamsInput = {
+        tableName: mainTable,
+        'limit: 1
+    };
+    stream<Stream,error?> response = check dynamoDBStreamClient->listStreams(listStreamsInput);
+    check response.forEach(function(Stream resp) {
+        test:assertEquals(resp.tableName, mainTable);
+    });                     
+}
+
+@test:Config{}
+function testDescribeStreams() returns error? {
+    DescribeStreamInput describeStream = {
+        streamArn: streamArn
+    };
+    StreamDescription response = check dynamoDBStreamClient->describeStream(describeStream);
+    test:assertEquals(response.tableName, mainTable);
+    test:assertEquals(response.streamStatus, "ENABLED");
+}
+
+@test:Config{}
+function testGetRecords() returns error? {
     DescribeStreamInput describeStream = {
         streamArn: streamArn
     };

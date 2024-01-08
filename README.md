@@ -93,37 +93,21 @@ The `dynamodbstreams` connector provides practical examples illustrating usage i
 For comprehensive information about the connector's functionality, configuration, and usage in Ballerina programs, refer to the `dynamodbstreams` connector's reference guide in [Ballerina Central](https://central.ballerina.io/ballerinax/aws.dynamodbstreams/latest).
 
 ## Building from the source
+
 ### Setting up the prerequisites
-1. Download and install Java SE Development Kit (JDK) version 11. You can install either [OpenJDK](https://adoptopenjdk.net/) or [Oracle JDK](https://www.oracle.com/java/technologies/javase-jdk11-downloads.html).
- 
-   > **Note:** Set the JAVA_HOME environment variable to the path name of the directory into which you installed JDK.
- 
-2. Download and install [Ballerina Swan Lake](https://ballerina.io/)
+
+1. Download and install Java SE Development Kit (JDK) version 17. You can install either [OpenJDK](https://adoptopenjdk.net/) or [Oracle](https://www.oracle.com/java/technologies/downloads/).
+    > **Note:** Set the JAVA_HOME environment variable to the path name of the directory into which you installed JDK.
+2. Download and install [Ballerina Swan Lake](https://ballerina.io/). 
 
 ### Building the source
- 
-Execute the commands below to build from the source:
-* To build the package:
-   ```   
-   bal build ./ballerina
-   ```
-* To run tests after build:
-   ```
-   bal test ./ballerina
-   ```
-## Contributing to Ballerina
- 
-As an open source project, Ballerina welcomes contributions from the community.
- 
-For more information, see [contribution guidelines](https://github.com/ballerina-platform/ballerina-lang/blob/master/CONTRIBUTING.md).
- 
-## Code of conduct
- 
-All contributors are encouraged to read the [Ballerina Code of Conduct](https://ballerina.io/code-of-conduct).
- 
-## Useful links
- 
-* Discuss code changes of the Ballerina project via [ballerina-dev@googlegroups.com](mailto:ballerina-dev@googlegroups.com).
-* Chat live with us via our [Discord server](https://discord.gg/ballerinalang).
-* Post all technical questions on Stack Overflow with the [#ballerina](https://stackoverflow.com/questions/tagged/ballerina) tag.
+Execute the commands below to build from the source.
+- To build the library:
+    ```shell
+    ./gradlew clean build
+    ```
+- To run the integration tests: 
+    ```shell
+    ./gradlew clean test
+    ```
  
