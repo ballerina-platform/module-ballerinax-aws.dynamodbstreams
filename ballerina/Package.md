@@ -1,16 +1,7 @@
-# Ballerina Amazon DynamoDB Streams Connector 
-[![Build Status](https://github.com/ballerina-platform/module-ballerinax-aws.dynamodbstreams/workflows/CI/badge.svg)](https://github.com/ballerina-platform/module-ballerinax-aws.dynamodbstreams/actions?query=workflow%3ACI)
-[![codecov](https://codecov.io/gh/ballerina-platform/module-ballerinax-aws.dynamodbstreams/branch/main/graph/badge.svg)](https://codecov.io/gh/ballerina-platform/module-ballerinax-aws.dynamodbstreams)
-[![GitHub Last Commit](https://img.shields.io/github/last-commit/ballerina-platform/module-ballerinax-aws.dynamodbstreams.svg)](https://github.com/ballerina-platform/module-ballerinax-aws.dynamodbstreams./commits/master)
-[![GraalVM Check](https://github.com/ballerina-platform/module-ballerinax-aws.dynamodbstreams/actions/workflows/build-with-bal-test-native.yml/badge.svg)](https://github.com/ballerina-platform/module-ballerinax-aws.dynamodbstreams/actions/workflows/build-with-bal-test-native.yml)
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+## Package overview
 
-[Amazon DynamoDB](https://aws.amazon.com/dynamodb/) is a fully managed, serverless, key-value NoSQL database designed to run high-performance applications at any scale. DynamoDB offers built-in security, continuous backups, automated multi-region replication, in-memory caching, and data export tools.
-
-The connector provides the capability to programmatically handle AWS DynamoDB Streams related operations.
-
-For more information, go to the module(s).
-- [aws.dynamodbstreams](./Module.md)
+The `ballerinax/aws.dynamodbstreams` is a [Ballerina](https://ballerina.io/) connector for AWS DynamoDB. It is comprised of the following capabilities.
+* Perform AWS DynamoDB Streams related operations programmatically. The `ballerinax/aws.dynamodbstreams` module provides this capability.
 
 ## Set up DynamoDB credentials
 
@@ -82,32 +73,11 @@ public function main() returns error? {
 ```
 2. Use `bal run` command to compile and run the Ballerina program.
 
+## Report issues
 
-## Examples
+To report bugs, request new features, start new discussions, view project boards, etc., go to the [Ballerina standard library parent repository](https://github.com/ballerina-platform/ballerina-standard-library).
 
-The `dynamodbstreams` connector provides practical examples illustrating usage in various scenarios. Explore these [examples](https://github.com/ballerina-platform/module-ballerinax-aws.dynamodbstreams/tree/master/examples).
+## Useful links
 
-1. [Real-time order processing](https://github.com/ballerina-platform/module-ballerinax-aws.dynamodbstreams/tree/master/examples/order-management/client.bal)
-    A real-time order processing system.
-
-For comprehensive information about the connector's functionality, configuration, and usage in Ballerina programs, refer to the `dynamodbstreams` connector's reference guide in [Ballerina Central](https://central.ballerina.io/ballerinax/aws.dynamodbstreams/latest).
-
-## Building from the source
-
-### Setting up the prerequisites
-
-1. Download and install Java SE Development Kit (JDK) version 17. You can install either [OpenJDK](https://adoptopenjdk.net/) or [Oracle](https://www.oracle.com/java/technologies/downloads/).
-    > **Note:** Set the JAVA_HOME environment variable to the path name of the directory into which you installed JDK.
-2. Download and install [Ballerina Swan Lake](https://ballerina.io/). 
-
-### Building the source
-Execute the commands below to build from the source.
-- To build the library:
-    ```shell
-    ./gradlew clean build
-    ```
-- To run the integration tests: 
-    ```shell
-    ./gradlew clean test
-    ```
- 
+- Chat live with us via our [Discord server](https://discord.gg/ballerinalang).
+- Post all technical questions on Stack Overflow with the [#ballerina](https://stackoverflow.com/questions/tagged/ballerina) tag.
