@@ -23,7 +23,7 @@ configurable string secretAccessKey = os:getEnv("SECRET_ACCESS_KEY");
 configurable string region = os:getEnv("REGION");
 
 final string mainTable = "TestStreamTable";
-final string streamArn = "arn:aws:dynamodb:us-east-1:134633749276:table/TestStreamTable/stream/2024-01-04T04:43:13.919";
+final string streamArn = "arn:aws:dynamodb:us-east-1:134633749276:table/TestStreamTable/stream/2024-01-19T11:15:31.697";
 final dynamodb:Client dynamodbClient = check new(config);
 
 ConnectionConfig config = {
