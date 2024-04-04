@@ -11,23 +11,23 @@ This module supports [Amazon DynamoDB REST API 20120810](https://docs.aws.amazon
 
 ## Setup guide
 
-### Step 1: Create an AWS Account:
+### Step 1: Create an AWS Account
 * If you don't already have an AWS account, you need to create one. Go to the [AWS Management Console](https://console.aws.amazon.com/console/home), click on "Create a new AWS Account," and follow the instructions.
 
-### Step 2: Get the Access Key ID and the Secret Access Key:
+### Step 2: Get the Access Key ID and the Secret Access Key
 
 Once you log in to your AWS account, you need to create a user group and a user with the necessary permissions to access DynamoDB. To do this, follow the steps below:
 
-1. Create an AWS User Group:
+1. Create an AWS User Group
 * Navigate to the Identity and Access Management (IAM) service. Click on "Groups" and then "Create New Group."
 
-<img src=https://raw.githubusercontent.com/ballerina-platform/module-ballerinax-aws.dynamodb/main/ballerina/resources/create-group.png alt="Create user group" width="50%">
+<img src=https://raw.githubusercontent.com/ballerina-platform/module-ballerinax-aws.dynamodbstreams/main/ballerina/resources/create-group.png alt="Create user group" width="50%">
 
 * Enter a group name and attach the necessary policies to the group. For example, you can attach the "AmazonDynamoDBFullAccess" policy to provide full access to DynamoDB.
 
 <img src=https://raw.githubusercontent.com/ballerina-platform/module-ballerinax-aws.dynamodbstreams/main/ballerina/resources/create-group-policies.png alt="Attach policy" width="50%">
 
-2. Create an IAM User:
+2. Create an IAM User
 
 * In the IAM console, navigate to "Users" and click on "Add user."
 
@@ -45,9 +45,9 @@ Once you log in to your AWS account, you need to create a user group and a user 
 
 <img src=https://raw.githubusercontent.com/ballerina-platform/module-ballerinax-aws.dynamodbstreams/main/ballerina/resources/create-user-review.png alt="Review user" width="50%">
 
-3. Generate Access Key ID and Secret Access Key:
+3. Generate Access Key ID and Secret Access Key
 
-* Once the user is created, you will see a success message. Navigate to the "Users" tab, select the user you created.
+* Once the user is created, you will see a success message. Navigate to the "Users" tab, and select the user you created.
 
 <img src=https://raw.githubusercontent.com/ballerina-platform/module-ballerinax-aws.dynamodbstreams/main/ballerina/resources/view-user.png alt="View User" width="50%">
 
@@ -70,7 +70,7 @@ import ballerinax/aws.dynamodbstreams;
 ```
 
 ### Step 2: Instantiate a new connector
-Create a `dynamodbstreams:ConnectionConfig` with the obtained access key id and secret access key to initialize the connector with it.
+Create a `dynamodbstreams:ConnectionConfig` with the obtained access key ID and secret access key to initialize the connector with it.
 ```ballerina
 dynamodbstreams:Client dynamoDb = check new({
     awsCredentials: {
