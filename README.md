@@ -7,44 +7,63 @@
 
 [Amazon DynamoDB](https://aws.amazon.com/dynamodb/) is a fully managed, serverless, key-value NoSQL database designed to run high-performance applications at any scale. DynamoDB offers built-in security, continuous backups, automated multi-region replication, in-memory caching, and data export tools.
 
-The connector provides the capability to programmatically handle AWS DynamoDB Streams related operations.
+## Overview
 
-For more information, go to the module(s).
-- [aws.dynamodbstreams](./Module.md)
+The connector provides the capability to programatically handle AWS DynamoDB Streams related operations.
 
-## Set up DynamoDB credentials
+This module supports [Amazon DynamoDB REST API 20120810](https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/Welcome.html).
 
-To invoke the DynamoDB REST API, you need AWS credentials. Below is a step-by-step guide on how to obtain these credentials:
+## Setup guide
 
-1. Create an AWS Account:
-* If you don't already have an AWS account, you need to create one. Go to the AWS Management Console, click on "Create an AWS Account," and follow the instructions.
+### Step 1: Create an AWS Account:
+* If you don't already have an AWS account, you need to create one. Go to the [AWS Management Console](https://console.aws.amazon.com/console/home), click on "Create a new AWS Account," and follow the instructions.
 
-2. Access the AWS Identity and Access Management (IAM) Console:
+### Step 2: Get the Access Key ID and the Secret Access Key:
 
-* Once logged into the [AWS Management Console](https://aws.amazon.com/), go to the IAM console by selecting "Services" and then choosing "IAM" under the "Security, Identity, & Compliance" section.
+Once you log in to your AWS account, you need to create a user group and a user with the necessary permissions to access DynamoDB. To do this, follow the steps below:
 
-3. Create an IAM User:
+1. Create an AWS User Group:
+* Navigate to the Identity and Access Management (IAM) service. Click on "Groups" and then "Create New Group."
+
+<img src=https://raw.githubusercontent.com/ballerina-platform/module-ballerinax-aws.dynamodb/main/ballerina/resources/create-group.png alt="Create user group" width="50%">
+
+* Enter a group name and attach the necessary policies to the group. For example, you can attach the "AmazonDynamoDBFullAccess" policy to provide full access to DynamoDB.
+
+<img src=https://raw.githubusercontent.com/ballerina-platform/module-ballerinax-aws.dynamodbstreams/main/ballerina/resources/create-group-policies.png alt="Attach policy" width="50%">
+
+2. Create an IAM User:
 
 * In the IAM console, navigate to "Users" and click on "Add user."
-* Enter a username, and under "Select AWS access type," choose "Programmatic access."
-* Click through the permissions setup, attaching policies that grant access to DynamoDB if you have specific requirements.
+
+<img src=https://raw.githubusercontent.com/ballerina-platform/module-ballerinax-aws.dynamodbstreams/main/ballerina/resources/create-user.png alt="Add user" width="50%">
+
+* Enter a username, tick the "Provide user access to the AWS Management Console - optional" checkbox, and click "I want to create an IAM user". This will enable programmatic access through access keys.
+
+<img src=https://raw.githubusercontent.com/ballerina-platform/module-ballerinax-aws.dynamodbstreams/main/ballerina/resources/create-group-policies.png alt="Create IAM user" width="50%">
+
+* Click through the permissions setup, and add the user to the user group we previously created.
+
+<img src=https://raw.githubusercontent.com/ballerina-platform/module-ballerinax-aws.dynamodbstreams/main/ballerina/resources/create-user-set-permission.png alt="Attach user group" width="50%">
+
 * Review the details and click "Create user."
 
-4. Access Key ID and Secret Access Key:
+<img src=https://raw.githubusercontent.com/ballerina-platform/module-ballerinax-aws.dynamodbstreams/main/ballerina/resources/create-user-review.png alt="Review user" width="50%">
 
-* Once the user is created, you will see a success message. Take note of the "Access key ID" and "Secret access key" displayed on the confirmation screen. These credentials are needed to authenticate your requests.
+3. Generate Access Key ID and Secret Access Key:
 
-5. Securely Store Credentials:
+* Once the user is created, you will see a success message. Navigate to the "Users" tab, select the user you created.
 
-* Download the CSV file containing the credentials, or copy the "Access key ID" and "Secret access key" to a secure location. This information is sensitive and should be handled with care.
+<img src=https://raw.githubusercontent.com/ballerina-platform/module-ballerinax-aws.dynamodbstreams/main/ballerina/resources/view-user.png alt="View User" width="50%">
 
-6. Use the Credentials in Your Application:
+* Click on the "Create access key" button to generate the access key ID and secret access key.
 
-* In your application, use the obtained "Access key ID" and "Secret access key" to authenticate requests to the DynamoDB REST API.
+<img src=https://raw.githubusercontent.com/ballerina-platform/module-ballerinax-aws.dynamodbstreams/main/ballerina/resources/create-access-key.png alt="Create access key" width="50%">
+
+* Follow the steps and download the CSV file containing the credentials.
+
+<img src=https://raw.githubusercontent.com/ballerina-platform/module-ballerinax-aws.dynamodbstreams/main/ballerina/resources/download-access-key.png alt="Download credentials" width="50%">
 
 ## Quickstart
-
-**Note**: Ensure you follow the [prerequisites](https://github.com/ballerina-platform/module-ballerinax-aws.dynamodbstreams#set-up-dynamodb-credentials) to get the credentials to be used.
 
 To use the `dynamodbstreams` connector in your Ballerina application, modify the `.bal` file as follows:
 
@@ -57,57 +76,119 @@ import ballerinax/aws.dynamodbstreams;
 ### Step 2: Instantiate a new connector
 Create a `dynamodbstreams:ConnectionConfig` with the obtained access key id and secret access key to initialize the connector with it.
 ```ballerina
-dynamodbstreams:ConnectionConfig amazonDynamodbConfig = {
+dynamodbstreams:Client dynamoDb = check new({
     awsCredentials: {
         accessKeyId: "ACCESS_KEY_ID",
         secretAccessKey: "SECRET_ACCESS_KEY"
     },
     region: "REGION"
-};
-
-dynamodbstreams:Client amazonDynamodbClient = check new(amazonDynamodbConfig);
+});
 ```
 
-### Step 3: Invoke connector operation
-1. Now you can use the operations available within the connector. Note that they are in the form of remote operations.  
-Following is an example of how to describe a stream in DynamoDB streams using the connector.
+### Step 3: Invoke the connector operation
+Now, utilize the available connector operations.
 
 ```ballerina
 public function main() returns error? {
    dynamodbstreams:DescribeStreamInput describeStreamInput = {
       streamArn: "arn:aws:dynamodb:us-east-1:134633749276:table/TestStreamTable/stream/2024-01-04T04:43:13.919"
    };
-   dynamodbstreams:StreamDescription response = check dynamoDBStreamClient->describeStream(describeStreamInput);
+   dynamodbstreams:StreamDescription response = check dynamoDb->describeStream(describeStreamInput);
 }
 ```
-2. Use `bal run` command to compile and run the Ballerina program.
 
+### Step 4: Run the Ballerina application
+
+Use the following command to compile and run the Ballerina program.
+
+```bash
+bal run
+```
 
 ## Examples
 
 The `dynamodbstreams` connector provides practical examples illustrating usage in various scenarios. Explore these [examples](https://github.com/ballerina-platform/module-ballerinax-aws.dynamodbstreams/tree/master/examples).
 
 1. [Real-time order processing](https://github.com/ballerina-platform/module-ballerinax-aws.dynamodbstreams/tree/master/examples/order-management/client.bal)
-    A real-time order processing system.
+    This example shows how to use DynamoDB Streams API to implement a real-time order processing system.
 
 For comprehensive information about the connector's functionality, configuration, and usage in Ballerina programs, refer to the `dynamodbstreams` connector's reference guide in [Ballerina Central](https://central.ballerina.io/ballerinax/aws.dynamodbstreams/latest).
 
-## Building from the source
+## Issues and projects
 
-### Setting up the prerequisites
+The **Issues** and **Projects** tabs are disabled for this repository as this is part of the Ballerina library. To report bugs, request new features, start new discussions, view project boards, etc., visit the Ballerina library [parent repository](https://github.com/ballerina-platform/ballerina-library).
 
-1. Download and install Java SE Development Kit (JDK) version 17. You can install either [OpenJDK](https://adoptopenjdk.net/) or [Oracle](https://www.oracle.com/java/technologies/downloads/).
-    > **Note:** Set the JAVA_HOME environment variable to the path name of the directory into which you installed JDK.
-2. Download and install [Ballerina Swan Lake](https://ballerina.io/). 
+This repository only contains the source code for the package.
 
-### Building the source
+## Build from the source
+
+### Prerequisites
+
+1. Download and install Java SE Development Kit (JDK) version 17. You can download it from either of the following sources:
+
+    * [Oracle JDK](https://www.oracle.com/java/technologies/downloads/)
+    * [OpenJDK](https://adoptium.net/)
+
+   > **Note:** After installation, remember to set the `JAVA_HOME` environment variable to the directory where JDK was installed.
+
+2. Download and install [Ballerina Swan Lake](https://ballerina.io/).
+
+3. Download and install [Docker](https://www.docker.com/get-started).
+
+   > **Note**: Ensure that the Docker daemon is running before executing any tests.
+
+### Build options
+
 Execute the commands below to build from the source.
-- To build the library:
-    ```shell
-    ./gradlew clean build
+
+1. To build the package:
+   ```
+   ./gradlew clean build
+   ```
+
+2. To run the tests:
+   ```
+   ./gradlew clean test
+   ```
+
+3. To build the without the tests:
+   ```
+   ./gradlew clean build -x test
+   ```
+
+5. To debug package with a remote debugger:
+   ```
+   ./gradlew clean build -Pdebug=<port>
+   ```
+
+6. To debug with the Ballerina language:
+   ```
+   ./gradlew clean build -PbalJavaDebug=<port>
+   ```
+
+7. Publish the generated artifacts to the local Ballerina Central repository:
     ```
-- To run the integration tests: 
-    ```shell
-    ./gradlew clean test
+    ./gradlew clean build -PpublishToLocalCentral=true
     ```
- 
+
+8. Publish the generated artifacts to the Ballerina Central repository:
+   ```
+   ./gradlew clean build -PpublishToCentral=true
+   ```
+
+## Contribute to Ballerina
+
+As an open-source project, Ballerina welcomes contributions from the community.
+
+For more information, go to the [contribution guidelines](https://github.com/ballerina-platform/ballerina-lang/blob/master/CONTRIBUTING.md).
+
+## Code of conduct
+
+All the contributors are encouraged to read the [Ballerina Code of Conduct](https://ballerina.io/code-of-conduct).
+
+## Useful links
+
+* For more information go to the [`aws.dynamodbstreams` package](https://lib.ballerina.io/ballerinax/aws.dynamodbstreams/latest).
+* For example demonstrations of the usage, go to [Ballerina By Examples](https://ballerina.io/learn/by-example/).
+* Chat live with us via our [Discord server](https://discord.gg/ballerinalang).
+* Post all technical questions on Stack Overflow with the [#ballerina](https://stackoverflow.com/questions/tagged/ballerina) tag.
