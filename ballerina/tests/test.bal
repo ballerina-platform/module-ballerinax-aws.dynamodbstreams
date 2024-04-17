@@ -36,8 +36,8 @@ Client dynamoDBStreamClient = check new (config);
 @test:BeforeSuite
 function updateItem() returns error? {
     dynamodb:ItemCreateInput request = {
-        tableName: mainTable,
-        item: {
+        TableName: mainTable,
+        Item: {
             "LastPostDateTime": {
                 "S": "201303190422"
             },
@@ -61,11 +61,11 @@ function updateItem() returns error? {
                 "S": "fred@example.com"
             }
         },
-        conditionExpression: "ForumName <> :f and Subject <> :s",
-        returnValues: dynamodb:ALL_OLD,
-        returnItemCollectionMetrics: dynamodb:SIZE,
-        returnConsumedCapacity: dynamodb:TOTAL,
-        expressionAttributeValues: {
+        ConditionExpression: "ForumName <> :f and Subject <> :s",
+        ReturnValues: dynamodb:ALL_OLD,
+        ReturnItemCollectionMetrics: dynamodb:SIZE,
+        ReturnConsumedCapacity: dynamodb:TOTAL,
+        ExpressionAttributeValues: {
             ":f": {
                 "S": "Amazon DynamoDB"
             },
@@ -131,8 +131,8 @@ function testGetRecords() returns error? {
 @test:AfterSuite
 function deleteUpdatedItem() returns error? {
     dynamodb:ItemDeleteInput delRequest = {
-        tableName: mainTable,
-        'key: {
+        TableName: mainTable,
+        Key: {
             "ForumName": {
                 "S": "Amazon DynamoDB"
             },
@@ -140,9 +140,9 @@ function deleteUpdatedItem() returns error? {
                 "S": "How do I update multiple items?"
             }
         },
-        returnConsumedCapacity: dynamodb:TOTAL,
-        returnItemCollectionMetrics: dynamodb:SIZE,
-        returnValues: dynamodb:ALL_OLD
+        ReturnConsumedCapacity: dynamodb:TOTAL,
+        ReturnItemCollectionMetrics: dynamodb:SIZE,
+        ReturnValues: dynamodb:ALL_OLD
     };
     _= check dynamodbClient->deleteItem(delRequest);
 }
