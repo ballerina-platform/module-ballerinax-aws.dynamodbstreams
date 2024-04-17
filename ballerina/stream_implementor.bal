@@ -53,6 +53,7 @@ class ListStream {
             self.index += 1;
             return streamName;
         }
+        return ();
     }
 
     isolated function fetchStreams() returns Stream[]|error {
@@ -121,6 +122,7 @@ class RecordsStream {
             self.index += 1;
             return 'record;
         }
+        return ();
     }
 
     isolated function fetchRecords() returns Record[]|error {
