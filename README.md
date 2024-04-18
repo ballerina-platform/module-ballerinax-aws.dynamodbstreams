@@ -41,7 +41,7 @@ Once you log in to your AWS account, you need to create a user group and a user 
 
    <img src=https://raw.githubusercontent.com/ballerina-platform/module-ballerinax-aws.dynamodbstreams/main/docs/resources/create-user-iam-user.png alt="Create IAM user" width="50%">
 
-* Click through the permissions setup, and add the user to the user group we previously created.
+* Click through the permission setup, and add the user to the user group we previously created.
 
    <img src=https://raw.githubusercontent.com/ballerina-platform/module-ballerinax-aws.dynamodbstreams/main/docs/resources/create-user-set-permission.png alt="Attach user group" width="50%">
 
@@ -74,7 +74,7 @@ import ballerinax/aws.dynamodbstreams;
 ```
 
 ### Step 2: Instantiate a new connector
-Create a `dynamodbstreams:ConnectionConfig` with the obtained access key ID and secret access key to initialize the connector with it.
+Instantiate a new `Client` using the access key ID, secret access key and the region.
 ```ballerina
 dynamodbstreams:Client dynamoDbStreams = check new({
     awsCredentials: {
