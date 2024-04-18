@@ -1,5 +1,5 @@
 ## Overview
-The Ballerina AWS DynamoDB streams connector provides the capability to programatically handle [AWS DynamoDB streams](https://aws.amazon.com/dynamodb/) related operations.
+The Ballerina AWS DynamoDB streams connector provides the capability to programmatically handle [AWS DynamoDB streams](https://aws.amazon.com/dynamodb/) related operations.
 
 This module supports [Amazon DynamoDB REST API 20120810](https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/Welcome.html).
 
@@ -13,6 +13,7 @@ This module supports [Amazon DynamoDB REST API 20120810](https://docs.aws.amazon
 Once you log in to your AWS account, you need to create a user group and a user with the necessary permissions to access DynamoDB. To do this, follow the steps below:
 
 1. Create an AWS user group
+
 * Navigate to the Identity and Access Management (IAM) service. Click on "Groups" and then "Create New Group."
 
    <img src=https://raw.githubusercontent.com/ballerina-platform/module-ballerinax-aws.dynamodbstreams/main/docs/resources/create-group.png alt="Create user group" width="50%">
