@@ -69,12 +69,14 @@ Once you log in to your AWS account, you need to create a user group and a user 
 To use the `dynamodbstreams` connector in your Ballerina application, modify the `.bal` file as follows:
 
 ### Step 1: Import the connector
+
 Import the `ballerinax/aws.dynamodbstreams` package into your Ballerina project.
 ```ballerina
 import ballerinax/aws.dynamodbstreams;
 ```
 
 ### Step 2: Instantiate a new connector
+
 Instantiate a new `Client` using the access key ID, secret access key and the region.
 ```ballerina
 dynamodbstreams:Client dynamoDbStreams = check new({
@@ -87,6 +89,7 @@ dynamodbstreams:Client dynamoDbStreams = check new({
 ```
 
 ### Step 3: Invoke the connector operation
+
 Now, utilize the available connector operations.
 
 ```ballerina
