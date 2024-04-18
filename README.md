@@ -9,13 +9,14 @@
 
 ## Overview
 
-The connector provides the capability to programatically handle AWS DynamoDB Streams related operations.
+The connector provides the capability to programmatically handle AWS DynamoDB Streams-related operations.
 
 This module supports [Amazon DynamoDB REST API 20120810](https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/Welcome.html).
 
 ## Setup guide
 
 ### Step 1: Create an AWS account
+
 * If you don't already have an AWS account, you need to create one. Go to the [AWS Management Console](https://console.aws.amazon.com/console/home), click on "Create a new AWS Account," and follow the instructions.
 
 ### Step 2: Get the access key ID and the secret access key
