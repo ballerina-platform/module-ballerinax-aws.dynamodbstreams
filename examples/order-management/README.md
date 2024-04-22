@@ -1,4 +1,4 @@
-# Real-time Order Processing
+# Real-time order processing
 
 ## Overview
 
@@ -15,7 +15,7 @@ Consider a scenario you want to do real-time order processing. You can simply do
 
 In this example, we'll use a basic long-polling approach to continuously check the DynamoDB Stream for new records. You can use the `getRecords` API for this. 
 
-## Run the Example
+## Run the example
 
 First, clone this repository, and then run the following commands to run this example in your local machine.
 
