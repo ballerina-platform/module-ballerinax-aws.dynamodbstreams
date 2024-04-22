@@ -1,83 +1,109 @@
-## Package overview
+## Overview
 
-The `ballerinax/aws.dynamodbstreams` is a [Ballerina](https://ballerina.io/) connector for AWS DynamoDB. It is comprised of the following capabilities.
-* Perform AWS DynamoDB Streams related operations programmatically. The `ballerinax/aws.dynamodbstreams` module provides this capability.
+The Ballerina AWS DynamoDB streams connector provides the capability to programatically handle [AWS DynamoDB streams](https://aws.amazon.com/dynamodb/) related operations.
 
-## Set up DynamoDB credentials
+This module supports [Amazon DynamoDB REST API 20120810](https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/Welcome.html).
 
-To invoke the DynamoDB REST API, you need AWS credentials. Below is a step-by-step guide on how to obtain these credentials:
+## Setup guide
 
-1. Create an AWS Account:
-* If you don't already have an AWS account, you need to create one. Go to the AWS Management Console, click on "Create an AWS Account," and follow the instructions.
+### Step 1: Create an AWS account
 
-2. Access the AWS Identity and Access Management (IAM) Console:
+* If you don't already have an AWS account, you need to create one. Go to the [AWS Management Console](https://console.aws.amazon.com/console/home), click on "Create a new AWS Account," and follow the instructions.
 
-* Once logged into the [AWS Management Console](https://aws.amazon.com/), go to the IAM console by selecting "Services" and then choosing "IAM" under the "Security, Identity, & Compliance" section.
+### Step 2: Get the access key ID and the secret access key
 
-3. Create an IAM User:
+Once you log in to your AWS account, you need to create a user group and a user with the necessary permissions to access DynamoDB. To do this, follow the steps below:
+
+1. Create an AWS user group
+
+* Navigate to the Identity and Access Management (IAM) service. Click on "Groups" and then "Create New Group."
+
+   <img src=https://raw.githubusercontent.com/ballerina-platform/module-ballerinax-aws.dynamodbstreams/main/docs/setup/resources/create-group.png alt="Create user group" width="50%">
+
+* Enter a group name and attach the necessary policies to the group. For example, you can attach the "AmazonDynamoDBFullAccess" policy to provide full access to DynamoDB.
+
+   <img src=https://raw.githubusercontent.com/ballerina-platform/module-ballerinax-aws.dynamodbstreams/main/docs/setup/resources/create-group-policies.png alt="Attach policy" width="50%">
+
+2. Create an IAM user
 
 * In the IAM console, navigate to "Users" and click on "Add user."
-* Enter a username, and under "Select AWS access type," choose "Programmatic access."
-* Click through the permissions setup, attaching policies that grant access to DynamoDB if you have specific requirements.
+
+   <img src=https://raw.githubusercontent.com/ballerina-platform/module-ballerinax-aws.dynamodbstreams/main/docs/setup/resources/create-user.png alt="Add user" width="50%">
+
+* Enter a username, tick the "Provide user access to the AWS Management Console - optional" checkbox, and click "I want to create an IAM user". This will enable programmatic access through access keys.
+
+   <img src=https://raw.githubusercontent.com/ballerina-platform/module-ballerinax-aws.dynamodbstreams/main/docs/setup/resources/create-user-iam-user.png alt="Create IAM user" width="50%">
+
+* Click through the permission setup, and add the user to the user group we previously created.
+
+   <img src=https://raw.githubusercontent.com/ballerina-platform/module-ballerinax-aws.dynamodbstreams/main/docs/setup/resources/create-user-set-permission.png alt="Attach user group" width="50%">
+
 * Review the details and click "Create user."
 
-4. Access Key ID and Secret Access Key:
+   <img src=https://raw.githubusercontent.com/ballerina-platform/module-ballerinax-aws.dynamodbstreams/main/docs/setup/resources/create-user-review.png alt="Review user" width="50%">
 
-* Once the user is created, you will see a success message. Take note of the "Access key ID" and "Secret access key" displayed on the confirmation screen. These credentials are needed to authenticate your requests.
+3. Generate access key ID and secret access key
 
-5. Securely Store Credentials:
+* Once the user is created, you will see a success message. Navigate to the "Users" tab, and select the user you created.
 
-* Download the CSV file containing the credentials, or copy the "Access key ID" and "Secret access key" to a secure location. This information is sensitive and should be handled with care.
+   <img src=https://raw.githubusercontent.com/ballerina-platform/module-ballerinax-aws.dynamodbstreams/main/docs/setup/resources/view-user.png alt="View User" width="50%">
 
-6. Use the Credentials in Your Application:
+* Click on the "Create access key" button to generate the access key ID and secret access key.
 
-* In your application, use the obtained "Access key ID" and "Secret access key" to authenticate requests to the DynamoDB REST API.
+   <img src=https://raw.githubusercontent.com/ballerina-platform/module-ballerinax-aws.dynamodbstreams/main/docs/setup/resources/create-access-key.png alt="Create access key" width="50%">
+
+* Follow the steps and download the CSV file containing the credentials.
+
+   <img src=https://raw.githubusercontent.com/ballerina-platform/module-ballerinax-aws.dynamodbstreams/main/docs/setup/resources/download-access-key.png alt="Download credentials" width="50%">
 
 ## Quickstart
-
-**Note**: Ensure you follow the [prerequisites](https://github.com/ballerina-platform/module-ballerinax-aws.dynamodbstreams#set-up-dynamodb-credentials) to get the credentials to be used.
 
 To use the `dynamodbstreams` connector in your Ballerina application, modify the `.bal` file as follows:
 
 ### Step 1: Import the connector
+
 Import the `ballerinax/aws.dynamodbstreams` package into your Ballerina project.
 ```ballerina
 import ballerinax/aws.dynamodbstreams;
 ```
 
 ### Step 2: Instantiate a new connector
-Create a `dynamodbstreams:ConnectionConfig` with the obtained access key id and secret access key to initialize the connector with it.
+
+Instantiate a new `Client` using the access key ID, secret access key and the region.
 ```ballerina
-dynamodbstreams:ConnectionConfig amazonDynamodbConfig = {
+dynamodbstreams:Client dynamoDbStreams = check new({
     awsCredentials: {
         accessKeyId: "ACCESS_KEY_ID",
         secretAccessKey: "SECRET_ACCESS_KEY"
     },
     region: "REGION"
-};
-
-dynamodbstreams:Client amazonDynamodbClient = check new(amazonDynamodbConfig);
+});
 ```
 
-### Step 3: Invoke connector operation
-1. Now you can use the operations available within the connector. Note that they are in the form of remote operations.  
-Following is an example of how to describe a stream in DynamoDB streams using the connector.
+### Step 3: Invoke the connector operation
+
+Now, utilize the available connector operations.
 
 ```ballerina
 public function main() returns error? {
    dynamodbstreams:DescribeStreamInput describeStreamInput = {
       streamArn: "arn:aws:dynamodb:us-east-1:134633749276:table/TestStreamTable/stream/2024-01-04T04:43:13.919"
    };
-   dynamodbstreams:StreamDescription response = check dynamoDBStreamClient->describeStream(describeStreamInput);
+   dynamodbstreams:StreamDescription response = check dynamoDbStreams->describeStream(describeStreamInput);
 }
 ```
-2. Use `bal run` command to compile and run the Ballerina program.
 
-## Report issues
+### Step 4: Run the Ballerina application
 
-To report bugs, request new features, start new discussions, view project boards, etc., go to the [Ballerina standard library parent repository](https://github.com/ballerina-platform/ballerina-standard-library).
+Use the following command to compile and run the Ballerina program.
 
-## Useful links
+```bash
+bal run
+```
 
-- Chat live with us via our [Discord server](https://discord.gg/ballerinalang).
-- Post all technical questions on Stack Overflow with the [#ballerina](https://stackoverflow.com/questions/tagged/ballerina) tag.
+## Examples
+
+The `dynamodbstreams` connector provides practical examples illustrating usage in various scenarios. Explore these [examples](https://github.com/ballerina-platform/module-ballerinax-aws.dynamodbstreams/tree/master/examples).
+
+1. [Real-time order processing](https://github.com/ballerina-platform/module-ballerinax-aws.dynamodbstreams/tree/master/examples/order-management)
+   This example shows how to use DynamoDB Streams API to implement a real-time order processing system.
