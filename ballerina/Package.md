@@ -73,10 +73,10 @@ Instantiate a new `Client` using the access key ID, secret access key and the re
 ```ballerina
 dynamodbstreams:Client dynamoDbStreams = check new({
     awsCredentials: {
-        accessKeyId: "ACCESS_KEY_ID",
-        secretAccessKey: "SECRET_ACCESS_KEY"
+        accessKeyId,
+        secretAccessKey
     },
-    region: "REGION"
+    region
 });
 ```
 
