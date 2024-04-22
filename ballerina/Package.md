@@ -1,4 +1,4 @@
-## Overview
+## Package overview
 
 The Ballerina AWS DynamoDB streams connector provides the capability to programatically handle [AWS DynamoDB streams](https://aws.amazon.com/dynamodb/) related operations.
 
@@ -60,12 +60,11 @@ Once you log in to your AWS account, you need to create a user group and a user 
 
 To use the `dynamodbstreams` connector in your Ballerina application, modify the `.bal` file as follows:
 
-### Step 1: Import the connector
+### Step 1: Import the module
 
-Import the `ballerinax/aws.dynamodbstreams` package into your Ballerina project.
+Import the `ballerinax/aws.dynamodbstreams` module into your Ballerina project.
 ```ballerina
 import ballerinax/aws.dynamodbstreams;
-```
 
 ### Step 2: Instantiate a new connector
 
