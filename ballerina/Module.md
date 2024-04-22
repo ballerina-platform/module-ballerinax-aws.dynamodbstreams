@@ -1,4 +1,6 @@
 ## Overview
+
+[Amazon DynamoDB](https://aws.amazon.com/dynamodb/) is a fully managed, serverless, key-value NoSQL database designed to run high-performance applications at any scale. DynamoDB offers built-in security, continuous backups, automated multi-region replication, in-memory caching, and data export tools.
 The Ballerina AWS DynamoDB streams connector provides the capability to programmatically handle [AWS DynamoDB streams](https://aws.amazon.com/dynamodb/) related operations.
 
 This module supports [Amazon DynamoDB REST API 20120810](https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/Welcome.html).
