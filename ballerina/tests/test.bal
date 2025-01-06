@@ -16,6 +16,7 @@
 
 import ballerina/test;
 import ballerina/os;
+import ballerina/io;
 import ballerinax/aws.dynamodb;
 
 configurable string accessKeyId = os:getEnv("ACCESS_KEY_ID");
@@ -35,6 +36,9 @@ Client dynamoDBStreamClient = check new (config);
 
 @test:BeforeSuite
 function updateItem() returns error? {
+    io:println("------region-------");
+    io:println(region);
+    io:println("------region-------");
     dynamodb:ItemCreateInput request = {
         TableName: mainTable,
         Item: {
