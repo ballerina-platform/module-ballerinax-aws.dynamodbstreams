@@ -2,7 +2,7 @@
 distribution = "2201.11.0-20241218-101200-109f6cc7"
 org = "ballerinax"
 name = "aws.dynamodbstreams"
-version = "1.0.0"
+version = "1.0.1"
 authors = ["Ballerina"]
 repository = "https://github.com/ballerina-platform/module-ballerinax-aws.dynamodbstreams"
 icon = "icon.png"
