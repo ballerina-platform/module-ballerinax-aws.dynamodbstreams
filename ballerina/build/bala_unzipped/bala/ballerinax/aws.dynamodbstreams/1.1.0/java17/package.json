@@ -1,0 +1,23 @@
+{
+  "organization": "ballerinax",
+  "name": "aws.dynamodbstreams",
+  "version": "1.1.0",
+  "licenses": [
+    "Apache-2.0"
+  ],
+  "authors": [
+    "Ballerina"
+  ],
+  "source_repository": "https://github.com/ballerina-platform/module-ballerinax-aws.dynamodbstreams",
+  "export": [
+    "aws.dynamodbstreams"
+  ],
+  "icon": "docs/icon.png",
+  "ballerina_version": "2201.13.0-20250927-204700-7b3ef131",
+  "implementation_vendor": "WSO2",
+  "language_spec_version": "2024R1",
+  "platform": "java21",
+  "graalvmCompatible": true,
+  "template": false,
+  "readme": "docs/Package.md"
+}

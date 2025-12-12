@@ -1,0 +1,21 @@
+{
+  "last_build_time": 1765535331060,
+  "last_update_time": 1765535331060,
+  "last_bal_toml_update_time": 1765535271085,
+  "distribution_version": "2201.13.1",
+  "last_modified_time": {
+    "aws.dynamodbstreams": 1765535271085
+  },
+  "imports": [
+    "ballerinax/client.config",
+    "ballerina/http",
+    "ballerina/crypto",
+    "ballerina/jballerina.java",
+    "ballerina/lang.array",
+    "ballerina/time",
+    "ballerina/url",
+    "ballerina/os",
+    "ballerinax/aws.dynamodb",
+    "ballerina/test"
+  ]
+}
