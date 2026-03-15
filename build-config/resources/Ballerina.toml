@@ -4,7 +4,7 @@ org = "ballerinax"
 name = "aws.dynamodbstreams"
 version = "@toml.version@"
 authors = ["Ballerina"]
-repository = "https://github.com/ballerina-platform/module-ballerinax-aws.dynamodbstreams"
+keywords = ["Type/Connector", "Vendor/AWS", "Area/Database"]
 icon = "icon.png"
 license = ["Apache-2.0"]
 
