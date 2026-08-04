@@ -1,14 +1,18 @@
-# Ballerina Amazon DynamoDB Streams Connector
-
-[![Build](https://github.com/ballerina-platform/module-ballerinax-aws.dynamodbstreams/actions/workflows/ci.yml/badge.svg)](https://github.com/ballerina-platform/module-ballerinax-aws.dynamodbstreams/actions/workflows/build-timestamped-master.yml)
-[![codecov](https://codecov.io/gh/ballerina-platform/module-ballerinax-aws.dynamodbstreams/branch/main/graph/badge.svg)](https://codecov.io/gh/ballerina-platform/module-ballerinax-aws.dynamodbstreams)
-[![GitHub Last Commit](https://img.shields.io/github/last-commit/ballerina-platform/module-ballerinax-aws.dynamodbstreams.svg)](https://github.com/ballerina-platform/module-ballerinax-aws.dynamodbstreams/commits/main)
-[![GitHub Issues](https://img.shields.io/github/issues/ballerina-platform/ballerina-library/module/aws.dynamodbstreams.svg?label=Open%20Issues)](https://github.com/ballerina-platform/ballerina-library/labels/module%2Faws.dynamodbstreams)
-
-
 ## Overview
 
-The `ballerinax/aws.dynamodbstreams` package offers APIs to connect and interact with the [AWS DynamoDB Streams API](https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_Operations_Amazon_DynamoDB_Streams.html) endpoints, covering all four of its operations: `ListStreams`, `DescribeStream`, `GetShardIterator`, and `GetRecords`.
+[Amazon DynamoDB Streams](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Streams.html) captures a time-ordered sequence of item-level modifications made to an [Amazon DynamoDB](https://aws.amazon.com/dynamodb/) table and stores them for up to 24 hours, so applications can react to data changes in near real time. Each modification produces one stream record, and the records of a stream are distributed across shards that a consumer reads through shard iterators.
+
+The Amazon DynamoDB Streams connector offers APIs to connect and interact with the [AWS DynamoDB Streams API](https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_Operations_Amazon_DynamoDB_Streams.html) endpoints.
+
+### Key features
+
+- Complete coverage of the DynamoDB Streams API: `ListStreams`, `DescribeStream`, `GetShardIterator`, and `GetRecords`
+- Checkpointable shard reads — `getRecords` surfaces the next shard iterator, and every record carries its sequence number, so a restarted consumer can resume exactly where it stopped
+- One remote method per AWS operation, and an auto-paginating Ballerina stream for `listStreams`
+- Typed change data: item images and keys are attribute-name keyed maps of `AttributeValue`
+- Flexible credential configuration: static keys, AWS credentials file profiles, STS assume-role, web identity (OIDC), IAM Identity Center (SSO), an external credential process, or the default AWS credential provider chain (EKS Pod Identity, ECS task roles, EC2 instance profiles, environment variables)
+- Automatic refresh of expiring temporary credentials
+- FIPS, dualstack, and custom endpoint support
 
 ## Setup guide
 
@@ -82,6 +86,19 @@ dynamodbstreams:Client dynamodbStreams = check new ({
 });
 ```
 
+For temporary credentials (e.g., from `aws sts get-session-token`), include the session token:
+
+```ballerina
+dynamodbstreams:Client dynamodbStreams = check new ({
+    auth: {
+        accessKeyId: "<AWS_ACCESS_KEY_ID>",
+        secretAccessKey: "<AWS_SECRET_ACCESS_KEY>",
+        sessionToken: "<AWS_SESSION_TOKEN>"
+    },
+    region: aws:US_EAST_1
+});
+```
+
 #### Option 2: AWS credentials file profile
 
 Use a named profile from your `~/.aws/credentials` file. Suitable for developer workstations with multiple AWS accounts.
@@ -115,6 +132,18 @@ The standard default credential provider chain tries each of the following in or
 2. The shared config/credentials file's active profile (`AWS_PROFILE`, or `default` if unset) — which may itself resolve via SSO, an external process, or a chained `AssumeRole` call, depending on that profile's configuration
 3. Container credentials (ECS/EKS)
 4. EC2 instance profile (IMDS)
+
+> **Note:** Beyond the three options above, the `auth` field also accepts `auth:AssumeRoleConfig` (STS assume-role), `auth:WebIdentityConfig` (web identity / OIDC), `auth:SsoAuthConfig` (IAM Identity Center), and `auth:ProcessAuthConfig` (external credential process). Temporary credentials from any of these sources are refreshed automatically before they expire. See the [`ballerinax/aws`](https://central.ballerina.io/ballerinax/aws/latest) documentation for details.
+
+To reach a non-default endpoint — a FIPS or dualstack variant, a VPC interface endpoint, or a local [LocalStack](https://www.localstack.cloud/) instance — set the optional `endpoint` field:
+
+```ballerina
+dynamodbstreams:Client dynamodbStreams = check new ({
+    auth: auth:DEFAULT_CREDENTIALS,
+    region: aws:US_EAST_1,
+    endpoint: {customEndpoint: "http://localhost:4566"}
+});
+```
 
 ### Step 3: Invoke the connector operation
 
@@ -203,103 +232,3 @@ The `aws.dynamodbstreams` connector provides practical examples illustrating usa
 
 2. [Checkpointed shard consumer](https://github.com/ballerina-platform/module-ballerinax-aws.dynamodbstreams/tree/main/examples/shard-checkpointing)
    This example shows how to read a stream with `getRecords`, persisting each record's sequence number so that a restarted consumer resumes where it stopped. It runs on the default credential provider chain, so it works unchanged on EC2, ECS, and EKS.
-
-## Issues and projects
-
-The **Issues** and **Projects** tabs are disabled for this repository as this is part of the Ballerina library. To report bugs, request new features, start new discussions, view project boards, etc., visit the Ballerina library [parent repository](https://github.com/ballerina-platform/ballerina-library).
-
-This repository only contains the source code for the package.
-
-## Build from the source
-
-### Prerequisites
-
-1. Download and install Java SE Development Kit (JDK) version 21. You can download it from either of the following sources:
-
-    * [Oracle JDK](https://www.oracle.com/java/technologies/downloads/)
-    * [OpenJDK](https://adoptium.net/)
-
-   > **Note:** After installation, remember to set the `JAVA_HOME` environment variable to the directory where JDK was installed.
-
-2. Download and install [Ballerina Swan Lake](https://ballerina.io/).
-
-3. Download and install [Docker](https://www.docker.com/get-started).
-
-   > **Note**: Ensure that the Docker daemon is running before executing any tests.
-
-### Build options
-
-Execute the commands below to build from the source.
-
-1. To build the package:
-   ```
-   ./gradlew clean build
-   ```
-
-2. To run the tests:
-   ```
-   ./gradlew clean test
-   ```
-
-3. To build the without the tests:
-   ```
-   ./gradlew clean build -x test
-   ```
-
-4. To debug package with a remote debugger:
-   ```
-   ./gradlew clean build -Pdebug=<port>
-   ```
-
-5. To debug with the Ballerina language:
-   ```
-   ./gradlew clean build -PbalJavaDebug=<port>
-   ```
-
-6. Publish the generated artifacts to the local Ballerina Central repository:
-    ```
-    ./gradlew clean build -PpublishToLocalCentral=true
-    ```
-
-7. Publish the generated artifacts to the Ballerina Central repository:
-   ```
-   ./gradlew clean build -PpublishToCentral=true
-   ```
-
-### Running the tests
-
-The data-binding and mock-endpoint tests run without any AWS setup. The live tests are skipped unless the environment names both a stream to read and a credential source:
-
-```bash
-export BALLERINA_AWS_DDBSTREAMS_TEST_TABLE="<TABLE_NAME>"
-export BALLERINA_AWS_DDBSTREAMS_TEST_STREAM_ARN="<STREAM_ARN>"
-
-# Static credentials
-export BALLERINA_AWS_TEST_ACCESS_KEY_ID="<AWS_ACCESS_KEY_ID>"
-export BALLERINA_AWS_TEST_SECRET_ACCESS_KEY="<AWS_SECRET_ACCESS_KEY>"
-
-# ... or a profile
-export BALLERINA_AWS_TEST_AUTH_TYPE="profile"
-export BALLERINA_AWS_TEST_PROFILE_NAME="<PROFILE_NAME>"
-export BALLERINA_AWS_TEST_CREDENTIALS_FILE="<PATH_TO_CREDENTIALS_FILE>"
-
-# ... or the default credential provider chain
-export BALLERINA_AWS_TEST_AUTH_TYPE="default"
-```
-
-## Contribute to Ballerina
-
-As an open-source project, Ballerina welcomes contributions from the community.
-
-For more information, go to the [contribution guidelines](https://github.com/ballerina-platform/ballerina-lang/blob/master/CONTRIBUTING.md).
-
-## Code of conduct
-
-All the contributors are encouraged to read the [Ballerina Code of Conduct](https://ballerina.io/code-of-conduct).
-
-## Useful links
-
-* For more information go to the [`aws.dynamodbstreams` package](https://central.ballerina.io/ballerinax/aws.dynamodbstreams/latest).
-* For example demonstrations of the usage, go to [Ballerina By Examples](https://ballerina.io/learn/by-example/).
-* Chat live with us via our [Discord server](https://discord.gg/ballerinalang).
-* Post all technical questions on Stack Overflow with the [#ballerina](https://stackoverflow.com/questions/tagged/ballerina) tag.
