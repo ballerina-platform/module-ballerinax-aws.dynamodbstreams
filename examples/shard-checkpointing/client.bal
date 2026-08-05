@@ -24,14 +24,11 @@ import ballerinax/aws.dynamodbstreams;
 configurable string region = os:getEnv("AWS_REGION");
 configurable string streamArn = os:getEnv("STREAM_ARN");
 
-// Where the last committed sequence number of each shard is stored. A real consumer would keep this in DynamoDB, Redis,
-// or whatever store it already treats as durable.
+// Where the last committed sequence number of each shard is stored.
 const string CHECKPOINT_DIR = "./checkpoints";
 
 public function main() returns error? {
-    // `DEFAULT_CREDENTIALS` resolves credentials from the environment, so this runs unchanged locally (environment
-    // variables or `~/.aws/credentials`), on EC2 (instance profile), on ECS (task role), and on EKS (Pod Identity
-    // or IRSA) — and any temporary credentials it finds are refreshed before they expire.
+    // `DEFAULT_CREDENTIALS` resolves credentials from the environment.
     dynamodbstreams:Client dynamodbStreams = check new ({
         auth: auth:DEFAULT_CREDENTIALS,
         region: region is "" ? aws:US_EAST_1 : region
@@ -51,9 +48,7 @@ public function main() returns error? {
 isolated function consumeShard(dynamodbstreams:Client dynamodbStreams, dynamodbstreams:Shard shard) returns error? {
     string shardId = check shard.shardId.ensureType();
 
-    // The checkpoint is the sequence number of the last record handled — not a shard iterator. Iterators expire
-    // after 15 minutes, so a persisted one is almost always dead by the next run; a sequence number stays usable
-    // for the stream's whole 24-hour retention window.
+    // The checkpoint is the sequence number of the last record handled — not a shard iterator.
     string? checkpoint = check loadCheckpoint(shardId);
     string? shardIterator;
     if checkpoint is string {
@@ -81,8 +76,8 @@ isolated function consumeShard(dynamodbstreams:Client dynamodbStreams, dynamodbs
         if result is dynamodbstreams:Error {
             // The only position failure a sequence-number checkpoint can hit: the record it names has aged past
             // the 24-hour retention window, so there is nothing to resume from.
-            json errorResponse = check result.detail()["errorResponse"].ensureType();
-            if errorResponse.toJsonString().includes("TrimmedDataAccessException") {
+            string errorResponse = check result.detail()["errorResponse"].ensureType();
+            if errorResponse.includes("TrimmedDataAccessException") {
                 io:println(string `Shard ${shardId}: checkpoint aged out, restarting from the trim horizon`);
                 check file:remove(check checkpointPath(shardId), file:RECURSIVE);
                 return;

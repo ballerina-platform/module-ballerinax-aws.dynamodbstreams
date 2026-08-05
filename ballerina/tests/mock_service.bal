@@ -14,29 +14,21 @@
 // specific language governing permissions and limitations
 // under the License.
 
-// A local stand-in for the DynamoDB Streams endpoint, reached through `endpoint.customEndpoint`. It speaks the AWS
-// JSON 1.0 protocol, echoes back the table and stream named in `test_init.bal`, and records what it was sent so the
-// tests can assert on signing and on the request payloads.
-//
-// The `listStreams` and `getRecords` fixtures are sequenced across calls to reproduce the response shapes that a
-// single request cannot show: a page that is empty but still carries a continuation token, a shard with nothing new
-// yet, and a shard that has closed. Tests that depend on that sequence call `resetMockState()` first.
-
 import ballerina/http;
 import ballerinax/aws;
 
 const int MOCK_PORT = 21099;
 const string MOCK_ENDPOINT = "http://localhost:21099";
 
-// Every iterator the mock hands out carries this prefix, so anything else is rejected the way the service rejects
-// an invalid or expired iterator.
 const string MOCK_ITERATOR_PREFIX = "mock-iterator";
 const string MOCK_REQUEST_ID = "MOCKREQUESTID123";
 const string MOCK_SHARD_ID = "shard-1";
 
+// Shard-iterator values the mock treats as instructions rather than positions.
+const string TRIGGER_NON_JSON_ERROR = "trigger-non-json-error";
+
 final readonly & aws:EndpointConfig mockEndpoint = {customEndpoint: MOCK_ENDPOINT};
 
-// A single isolated variable, since a `lock` statement may access only one restricted variable.
 type MockState record {|
     int listStreamsCallCount = 0;
     int getRecordsCallCount = 0;
@@ -73,6 +65,11 @@ service / on mockListener {
             }
             TARGET_GET_RECORDS => {
                 json shardIterator = (<map<json>>payload)["ShardIterator"];
+                // Stands in for a proxy or gateway answering with something that is not the service's JSON 1.0
+                // error document.
+                if shardIterator == TRIGGER_NON_JSON_ERROR {
+                    return nonJsonErrorResponse();
+                }
                 if shardIterator is string && shardIterator.startsWith(MOCK_ITERATOR_PREFIX) {
                     return okResponse(getRecordsPage());
                 }
@@ -168,6 +165,14 @@ isolated function errorResponse() returns http:Response {
         "__type": "com.amazonaws.dynamodb.v20120810#ExpiredIteratorException",
         "message": "The shard iterator has expired"
     });
+    return response;
+}
+
+// A failure whose body is not JSON at all — what a gateway in front of the endpoint would return.
+isolated function nonJsonErrorResponse() returns http:Response {
+    http:Response response = new;
+    response.statusCode = http:STATUS_BAD_GATEWAY;
+    response.setTextPayload("<html><body>502 Bad Gateway</body></html>", "text/html");
     return response;
 }
 

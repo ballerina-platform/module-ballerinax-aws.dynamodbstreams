@@ -18,20 +18,10 @@ import ballerina/data.jsondata;
 import ballerina/test;
 import ballerinax/aws.auth;
 
-// The `operations` tests below run against whichever backend `test_init.bal` selected — a real DynamoDB stream when
-// the environment supplies credentials, the local mock service otherwise — so their assertions hold for both. The
-// `mock` group covers what only the mock can show (the signed request itself, exact call counts, fixed fixtures),
-// and the `dataBinding` group needs no backend at all.
-
-// ---------------------------------------------------------------------------------------------------------------
-// Client initialization
-// ---------------------------------------------------------------------------------------------------------------
-
 @test:Config {
     groups: ["init"]
 }
 isolated function testInitUsingStaticAuthAndClose() returns error? {
-    // Static credentials are validated at init, so use the ones that are valid for the current mode.
     Client streamsClient = isLiveTestEnabled
         ? check new ({region: awsRegion, auth: staticAuth})
         : check newMockClient();
@@ -50,14 +40,8 @@ isolated function testUnresolvableCredentialsFailInit() {
     if result is Client {
         test:assertFail("expected an error when the credentials cannot be resolved");
     }
-    // `init` propagates the underlying failure as it is, so it surfaces as the `aws.auth` error rather than a
-    // `dynamodbstreams:Error`.
     test:assertTrue(result is auth:CredentialResolutionError, "unexpected error: " + result.message());
 }
-
-// ---------------------------------------------------------------------------------------------------------------
-// Operations — same assertions against the live service and the mock
-// ---------------------------------------------------------------------------------------------------------------
 
 @test:Config {
     groups: ["operations", "listStreams"]
@@ -158,9 +142,8 @@ isolated function testInvalidShardIteratorFails() returns error? {
         test:assertFail("expected an Error for an invalid shard iterator");
     }
     test:assertTrue(result.detail()["httpStatusCode"] is int);
-    json errorResponse = check result.detail()["errorResponse"].ensureType();
-    test:assertTrue(errorResponse.toJsonString().includes("Exception"),
-            "unexpected error response: " + errorResponse.toJsonString());
+    string errorResponse = check result.detail()["errorResponse"].ensureType();
+    test:assertTrue(errorResponse.includes("Exception"), "unexpected error response: " + errorResponse);
 }
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -321,10 +304,26 @@ isolated function testServiceErrorReportsTheErrorResponse() returns error? {
     test:assertEquals(result.message(), "The DynamoDB Streams operation failed with status 400");
     test:assertEquals(result.detail()["httpStatusCode"], 400);
     test:assertEquals(result.detail()["requestId"], MOCK_REQUEST_ID);
-    test:assertEquals(result.detail()["errorResponse"], {
-        "__type": "com.amazonaws.dynamodb.v20120810#ExpiredIteratorException",
-        "message": "The shard iterator has expired"
-    });
+    // The body is reported as it was received, so the exception name is there to match on.
+    string errorResponse = check result.detail()["errorResponse"].ensureType();
+    test:assertTrue(errorResponse.includes("ExpiredIteratorException"), "unexpected body: " + errorResponse);
+    test:assertTrue(errorResponse.includes("The shard iterator has expired"), "unexpected body: " + errorResponse);
+}
+
+@test:Config {
+    enable: !isLiveTestEnabled,
+    groups: ["mock", "errors"]
+}
+isolated function testNonJsonFailureBodyIsReportedVerbatim() returns error? {
+    resetMockState();
+    GetRecordsOutput|Error result = dynamodbStreams->getRecords({shardIterator: TRIGGER_NON_JSON_ERROR});
+    if result is GetRecordsOutput {
+        test:assertFail("expected an Error for the mocked gateway failure");
+    }
+    test:assertEquals(result.message(), "The DynamoDB Streams operation failed with status 502");
+    test:assertEquals(result.detail()["httpStatusCode"], 502);
+    string errorResponse = check result.detail()["errorResponse"].ensureType();
+    test:assertEquals(errorResponse, "<html><body>502 Bad Gateway</body></html>");
 }
 
 @test:Config {
@@ -375,7 +374,7 @@ isolated function assertWellFormed(Record[] records) returns error? {
 }
 
 // ---------------------------------------------------------------------------------------------------------------
-// Wire-format binding — no backend needed
+// Data binding tests — no backend needed
 // ---------------------------------------------------------------------------------------------------------------
 
 @test:Config {

@@ -24,7 +24,6 @@ configurable string secretAccessKey = os:getEnv("AWS_SECRET_ACCESS_KEY");
 configurable string region = os:getEnv("AWS_REGION");
 configurable string tableName = os:getEnv("ORDERS_TABLE_NAME");
 
-// Bounds the poll loop so the example terminates instead of tailing forever.
 const int MAX_IDLE_POLLS = 3;
 const decimal MAX_POLL_INTERVAL = 5;
 

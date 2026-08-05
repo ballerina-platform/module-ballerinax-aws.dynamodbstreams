@@ -61,8 +61,6 @@ isolated function generateRequest(auth:CredentialProvider credentialProvider, st
 # + request - The signed request to send
 # + return - The JSON response payload, or an `Error`
 isolated function sendRequest(http:Client streamClient, http:Request request) returns json|Error {
-    // Bind to `http:Response`, not to `json`: a `json` target type makes the HTTP client raise on 4xx/5xx, which
-    // would bury the service's error body in the `http` module's own error detail.
     http:Response|http:ClientError response = streamClient->post(ROOT_PATH, request);
     if response is http:ClientError {
         return error Error(string `Error occurred while invoking the REST API: ${response.message()}`, response);
@@ -70,18 +68,17 @@ isolated function sendRequest(http:Client streamClient, http:Request request) re
     return handleResponse(response);
 }
 
-# Reads the response payload, turning a service failure into an `Error`. The error detail carries the status code,
-# the request id, and the service's error response as it is — DynamoDB Streams speaks the AWS JSON 1.0 protocol, so
-# that response names the exception in a `__type` field of the form `<namespace>#<ExceptionName>` and carries a
-# human readable `message`.
+# Reads the response payload, turning a service failure into an `Error`. The error detail carries the status code, the
+# request id, and the response body as `errorResponse` — verbatim, since a failure body is not always the service's
+# JSON 1.0 error document. When the body cannot be read at all, `errorResponse` is absent and the read failure is the
+# error's cause.
 #
 # + response - The response received from the service
 # + return - The JSON response payload, or an `Error`
 isolated function handleResponse(http:Response response) returns json|Error {
-    json|error payload = response.getJsonPayload();
-
     // DynamoDB Streams answers every successful operation with 200; there is no other success status.
     if response.statusCode == http:STATUS_OK {
+        json|error payload = response.getJsonPayload();
         if payload is error {
             return error ResponseHandlingError(
                     string `Error occurred while reading the response payload: ${payload.message()}`, payload);
@@ -90,8 +87,12 @@ isolated function handleResponse(http:Response response) returns json|Error {
     }
 
     string|error requestId = response.getHeader(REQUEST_ID_HEADER);
-    return error Error(string `The DynamoDB Streams operation failed with status ${response.statusCode}`,
-            httpStatusCode = response.statusCode,
-            requestId = requestId is string ? requestId : "",
-            errorResponse = payload is json ? payload : ());
+    string message = string `The DynamoDB Streams operation failed with status ${response.statusCode}`;
+    string|error body = response.getTextPayload();
+    if body is error {
+        return error Error(message, body, httpStatusCode = response.statusCode,
+            requestId = requestId is string ? requestId : "");
+    }
+    return error Error(message, httpStatusCode = response.statusCode, requestId = requestId is string ? requestId : "",
+        errorResponse = body);
 }

@@ -113,8 +113,7 @@ public isolated client class Client {
         json response = check sendRequest(self.streamClient, httpRequest);
         do {
             json shardIterator = check response.ShardIterator;
-            string iterator = check shardIterator.ensureType();
-            return iterator;
+            return check shardIterator.ensureType();
         } on fail error e {
             return error ResponseHandlingError(string `Error occurred while processing the GetShardIterator response: ${
                     e.message()}`, e);

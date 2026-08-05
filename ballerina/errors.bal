@@ -15,8 +15,9 @@
 // under the License.
 
 # Represents the generic error type for the `aws.dynamodbstreams` module. For a failure reported by the DynamoDB
-# Streams service, the error detail carries the `httpStatusCode`, the `requestId`, and the service's `errorResponse`
-# as it is — which names the exception, for example `ExpiredIteratorException`.
+# Streams service, the error detail carries the `httpStatusCode`, the `requestId`, and the response body as
+# `errorResponse` — verbatim, so it names the exception, for example `ExpiredIteratorException`. When the body could
+# not be read at all, `errorResponse` is absent and the read failure is the error's `cause`.
 public type Error distinct error;
 
 # Represents an error that occurs while generating an API request, before anything is sent: the AWS credentials

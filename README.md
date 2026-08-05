@@ -145,47 +145,6 @@ public function main() returns error? {
 }
 ```
 
-To keep reading the shard, feed each response's `nextShardIterator` back in. The connector maps one method per AWS operation and holds no loop of its own, so the loop — and therefore when to checkpoint — is yours:
-
-```ballerina
-    while shardIterator is string {
-        dynamodbstreams:GetRecordsOutput result = check dynamodbStreams->getRecords({shardIterator});
-        foreach dynamodbstreams:Record 'record in result.records {
-            io:println('record.eventName);
-        }
-        shardIterator = result.nextShardIterator;
-    }
-```
-
-An empty `records` array does not mean the shard is finished; it means nothing new has arrived yet. The shard is done only when `nextShardIterator` comes back absent. Sleep briefly between empty reads rather than spinning.
-
-`pollRecords` wraps that loop when you only want to tail a shard and do not need to checkpoint:
-
-```ballerina
-stream<dynamodbstreams:Record, dynamodbstreams:Error?> records =
-    dynamodbStreams->pollRecords({shardIterator, maxIdlePolls: 3});
-check from dynamodbstreams:Record 'record in records
-    do {
-        io:println('record.eventName);
-    };
-```
-
-> **Note:** `pollRecords` completes when the shard is closed and fully read — it does not follow the child shards.
-> Shards close routinely as the table repartitions, so a long-running consumer should re-`describeStream` and pick
-> up the children rather than treating completion as the end of the data.
-
-To checkpoint while polling, persist each record's `sequenceNumber` and resume with an `AFTER_SEQUENCE_NUMBER`
-iterator. That is more durable than saving a shard iterator, which expires after 15 minutes:
-
-```ballerina
-string resumed = check dynamodbStreams->getShardIterator({
-    streamArn,
-    shardId,
-    shardIteratorType: dynamodbstreams:AFTER_SEQUENCE_NUMBER,
-    sequenceNumber: savedSequenceNumber
-});
-```
-
 ### Step 4: Run the Ballerina application
 
 Use the following command to compile and run the Ballerina program.
@@ -203,12 +162,6 @@ The `aws.dynamodbstreams` connector provides practical examples illustrating usa
 
 2. [Checkpointed shard consumer](https://github.com/ballerina-platform/module-ballerinax-aws.dynamodbstreams/tree/main/examples/shard-checkpointing)
    This example shows how to read a stream with `getRecords`, persisting each record's sequence number so that a restarted consumer resumes where it stopped. It runs on the default credential provider chain, so it works unchanged on EC2, ECS, and EKS.
-
-## Issues and projects
-
-The **Issues** and **Projects** tabs are disabled for this repository as this is part of the Ballerina library. To report bugs, request new features, start new discussions, view project boards, etc., visit the Ballerina library [parent repository](https://github.com/ballerina-platform/ballerina-library).
-
-This repository only contains the source code for the package.
 
 ## Build from the source
 
@@ -265,27 +218,6 @@ Execute the commands below to build from the source.
    ```
    ./gradlew clean build -PpublishToCentral=true
    ```
-
-### Running the tests
-
-The data-binding and mock-endpoint tests run without any AWS setup. The live tests are skipped unless the environment names both a stream to read and a credential source:
-
-```bash
-export BALLERINA_AWS_DDBSTREAMS_TEST_TABLE="<TABLE_NAME>"
-export BALLERINA_AWS_DDBSTREAMS_TEST_STREAM_ARN="<STREAM_ARN>"
-
-# Static credentials
-export BALLERINA_AWS_TEST_ACCESS_KEY_ID="<AWS_ACCESS_KEY_ID>"
-export BALLERINA_AWS_TEST_SECRET_ACCESS_KEY="<AWS_SECRET_ACCESS_KEY>"
-
-# ... or a profile
-export BALLERINA_AWS_TEST_AUTH_TYPE="profile"
-export BALLERINA_AWS_TEST_PROFILE_NAME="<PROFILE_NAME>"
-export BALLERINA_AWS_TEST_CREDENTIALS_FILE="<PATH_TO_CREDENTIALS_FILE>"
-
-# ... or the default credential provider chain
-export BALLERINA_AWS_TEST_AUTH_TYPE="default"
-```
 
 ## Contribute to Ballerina
 

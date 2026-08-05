@@ -42,7 +42,7 @@ class StreamIterator {
         // for the end of the result set — nor may an empty page be indexed into.
         while self.index >= self.currentPage.length() {
             if self.exhausted {
-                return ();
+                return;
             }
             check self.fetchNextPage();
         }
@@ -98,12 +98,12 @@ class RecordIterator {
             string? shardIterator = self.shardIterator;
             // An absent next shard iterator means the shard has been closed and fully read.
             if shardIterator !is string {
-                return ();
+                return;
             }
             if self.idlePolls > 0 {
                 int? maxIdlePolls = self.maxIdlePolls;
                 if maxIdlePolls is int && self.idlePolls >= maxIdlePolls {
-                    return ();
+                    return;
                 }
                 // Back off before re-polling a shard that returned nothing, so that tailing a quiet shard (the
                 // common case with the `LATEST` iterator type) does not spin against the service.

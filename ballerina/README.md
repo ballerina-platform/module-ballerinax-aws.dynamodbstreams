@@ -8,7 +8,7 @@ The Amazon DynamoDB Streams connector offers APIs to connect and interact with t
 
 - Complete coverage of the DynamoDB Streams API: `ListStreams`, `DescribeStream`, `GetShardIterator`, and `GetRecords`
 - Checkpointable shard reads — `getRecords` surfaces the next shard iterator, and every record carries its sequence number, so a restarted consumer can resume exactly where it stopped
-- One remote method per AWS operation, and an auto-paginating Ballerina stream for `listStreams`
+- One remote method per AWS operation, plus `pollRecords` to tail a shard and an auto-paginating Ballerina stream for `listStreams`
 - Typed change data: item images and keys are attribute-name keyed maps of `AttributeValue`
 - Flexible credential configuration: static keys, AWS credentials file profiles, STS assume-role, web identity (OIDC), IAM Identity Center (SSO), an external credential process, or the default AWS credential provider chain (EKS Pod Identity, ECS task roles, EC2 instance profiles, environment variables)
 - Automatic refresh of expiring temporary credentials
@@ -86,19 +86,6 @@ dynamodbstreams:Client dynamodbStreams = check new ({
 });
 ```
 
-For temporary credentials (e.g., from `aws sts get-session-token`), include the session token:
-
-```ballerina
-dynamodbstreams:Client dynamodbStreams = check new ({
-    auth: {
-        accessKeyId: "<AWS_ACCESS_KEY_ID>",
-        secretAccessKey: "<AWS_SECRET_ACCESS_KEY>",
-        sessionToken: "<AWS_SESSION_TOKEN>"
-    },
-    region: aws:US_EAST_1
-});
-```
-
 #### Option 2: AWS credentials file profile
 
 Use a named profile from your `~/.aws/credentials` file. Suitable for developer workstations with multiple AWS accounts.
@@ -133,18 +120,6 @@ The standard default credential provider chain tries each of the following in or
 3. Container credentials (ECS/EKS)
 4. EC2 instance profile (IMDS)
 
-> **Note:** Beyond the three options above, the `auth` field also accepts `auth:AssumeRoleConfig` (STS assume-role), `auth:WebIdentityConfig` (web identity / OIDC), `auth:SsoAuthConfig` (IAM Identity Center), and `auth:ProcessAuthConfig` (external credential process). Temporary credentials from any of these sources are refreshed automatically before they expire. See the [`ballerinax/aws`](https://central.ballerina.io/ballerinax/aws/latest) documentation for details.
-
-To reach a non-default endpoint — a FIPS or dualstack variant, a VPC interface endpoint, or a local [LocalStack](https://www.localstack.cloud/) instance — set the optional `endpoint` field:
-
-```ballerina
-dynamodbstreams:Client dynamodbStreams = check new ({
-    auth: auth:DEFAULT_CREDENTIALS,
-    region: aws:US_EAST_1,
-    endpoint: {customEndpoint: "http://localhost:4566"}
-});
-```
-
 ### Step 3: Invoke the connector operation
 
 Reading a stream is a three-step walk: describe the stream to find its shards, get an iterator for a shard, then read records from that position.
@@ -172,47 +147,6 @@ public function main() returns error? {
     // Persist this to resume the shard later, from this process or another one.
     string? checkpoint = result.nextShardIterator;
 }
-```
-
-To keep reading the shard, feed each response's `nextShardIterator` back in. The connector maps one method per AWS operation and holds no loop of its own, so the loop — and therefore when to checkpoint — is yours:
-
-```ballerina
-    while shardIterator is string {
-        dynamodbstreams:GetRecordsOutput result = check dynamodbStreams->getRecords({shardIterator});
-        foreach dynamodbstreams:Record 'record in result.records {
-            io:println('record.eventName);
-        }
-        shardIterator = result.nextShardIterator;
-    }
-```
-
-An empty `records` array does not mean the shard is finished; it means nothing new has arrived yet. The shard is done only when `nextShardIterator` comes back absent. Sleep briefly between empty reads rather than spinning.
-
-`pollRecords` wraps that loop when you only want to tail a shard and do not need to checkpoint:
-
-```ballerina
-stream<dynamodbstreams:Record, dynamodbstreams:Error?> records =
-    dynamodbStreams->pollRecords({shardIterator, maxIdlePolls: 3});
-check from dynamodbstreams:Record 'record in records
-    do {
-        io:println('record.eventName);
-    };
-```
-
-> **Note:** `pollRecords` completes when the shard is closed and fully read — it does not follow the child shards.
-> Shards close routinely as the table repartitions, so a long-running consumer should re-`describeStream` and pick
-> up the children rather than treating completion as the end of the data.
-
-To checkpoint while polling, persist each record's `sequenceNumber` and resume with an `AFTER_SEQUENCE_NUMBER`
-iterator. That is more durable than saving a shard iterator, which expires after 15 minutes:
-
-```ballerina
-string resumed = check dynamodbStreams->getShardIterator({
-    streamArn,
-    shardId,
-    shardIteratorType: dynamodbstreams:AFTER_SEQUENCE_NUMBER,
-    sequenceNumber: savedSequenceNumber
-});
 ```
 
 ### Step 4: Run the Ballerina application

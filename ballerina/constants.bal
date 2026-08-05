@@ -18,9 +18,7 @@
 // endpoint URL (e.g. `streams.dynamodb.us-east-1.amazonaws.com`).
 const string SERVICE_NAME = "streams.dynamodb";
 
-// The SigV4 signing name of the DynamoDB Streams service. Streams shares the
-// `dynamodb` signing name with the DynamoDB control and data planes, so it
-// differs from the endpoint prefix above.
+// The SigV4 signing name of the DynamoDB Streams service.
 const string SIGNING_SERVICE_NAME = "dynamodb";
 
 // The DynamoDB Streams API version, used as the `x-amz-target` prefix.
