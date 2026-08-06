@@ -297,10 +297,13 @@ public type PollRecordsInput record {|
     # The maximum number of records to return per underlying `GetRecords` call. The upper limit is 1000
     int 'limit?;
     # The time to wait, in seconds, before re-polling a shard that returned no records. Doubles on each consecutive
-    # empty poll, up to `maxPollInterval`, and resets as soon as records arrive
-    decimal pollInterval = 1;
-    # The upper bound, in seconds, for the wait between polls of a shard that keeps returning no records
-    decimal maxPollInterval = 20;
+    # empty poll, up to `maxPollInterval`, and resets as soon as records arrive. Must be greater than zero; a
+    # non-positive value would disable the backoff entirely and is replaced by the default
+    decimal pollInterval = DEFAULT_POLL_INTERVAL;
+    # The upper bound, in seconds, for the wait between polls of a shard that keeps returning no records. The
+    # `pollInterval` above this bound is capped to it. Must be greater than zero; a non-positive value is
+    # replaced by the default
+    decimal maxPollInterval = DEFAULT_MAX_POLL_INTERVAL;
     # The number of consecutive empty polls after which the stream completes. When not set, the stream keeps polling
     # an open shard indefinitely, and completes only once the shard is closed and fully read
     int maxIdlePolls?;

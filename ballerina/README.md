@@ -41,8 +41,12 @@ Attach the DynamoDB Streams permissions your application needs to the user. Read
     "Statement": [
         {
             "Effect": "Allow",
+            "Action": "dynamodb:ListStreams",
+            "Resource": "*"
+        },
+        {
+            "Effect": "Allow",
             "Action": [
-                "dynamodb:ListStreams",
                 "dynamodb:DescribeStream",
                 "dynamodb:GetShardIterator",
                 "dynamodb:GetRecords"
@@ -53,7 +57,9 @@ Attach the DynamoDB Streams permissions your application needs to the user. Read
 }
 ```
 
-> **Note:** `dynamodb:ListStreams` cannot be scoped to a single stream; grant it on `*` if your application calls `listStreams`.
+> **Note:** `dynamodb:ListStreams` is in a statement of its own because it cannot be scoped to a stream ARN — AWS
+> denies it when the resource is anything other than `*`. Omit that statement entirely if your application never
+> calls `listStreams`.
 
 ## Quickstart
 

@@ -1,6 +1,6 @@
 # Ballerina Amazon DynamoDB Streams Connector
 
-[![Build](https://github.com/ballerina-platform/module-ballerinax-aws.dynamodbstreams/actions/workflows/ci.yml/badge.svg)](https://github.com/ballerina-platform/module-ballerinax-aws.dynamodbstreams/actions/workflows/build-timestamped-master.yml)
+[![Build](https://github.com/ballerina-platform/module-ballerinax-aws.dynamodbstreams/actions/workflows/ci.yml/badge.svg)](https://github.com/ballerina-platform/module-ballerinax-aws.dynamodbstreams/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/ballerina-platform/module-ballerinax-aws.dynamodbstreams/branch/main/graph/badge.svg)](https://codecov.io/gh/ballerina-platform/module-ballerinax-aws.dynamodbstreams)
 [![GitHub Last Commit](https://img.shields.io/github/last-commit/ballerina-platform/module-ballerinax-aws.dynamodbstreams.svg)](https://github.com/ballerina-platform/module-ballerinax-aws.dynamodbstreams/commits/main)
 [![GitHub Issues](https://img.shields.io/github/issues/ballerina-platform/ballerina-library/module/aws.dynamodbstreams.svg?label=Open%20Issues)](https://github.com/ballerina-platform/ballerina-library/labels/module%2Faws.dynamodbstreams)
@@ -37,8 +37,12 @@ Attach the DynamoDB Streams permissions your application needs to the user. Read
     "Statement": [
         {
             "Effect": "Allow",
+            "Action": "dynamodb:ListStreams",
+            "Resource": "*"
+        },
+        {
+            "Effect": "Allow",
             "Action": [
-                "dynamodb:ListStreams",
                 "dynamodb:DescribeStream",
                 "dynamodb:GetShardIterator",
                 "dynamodb:GetRecords"
@@ -49,7 +53,9 @@ Attach the DynamoDB Streams permissions your application needs to the user. Read
 }
 ```
 
-> **Note:** `dynamodb:ListStreams` cannot be scoped to a single stream; grant it on `*` if your application calls `listStreams`.
+> **Note:** `dynamodb:ListStreams` is in a statement of its own because it cannot be scoped to a stream ARN — AWS
+> denies it when the resource is anything other than `*`. Omit that statement entirely if your application never
+> calls `listStreams`.
 
 ## Quickstart
 
@@ -185,37 +191,37 @@ The `aws.dynamodbstreams` connector provides practical examples illustrating usa
 Execute the commands below to build from the source.
 
 1. To build the package:
-   ```
+   ```bash
    ./gradlew clean build
    ```
 
 2. To run the tests:
-   ```
+   ```bash
    ./gradlew clean test
    ```
 
 3. To build the without the tests:
-   ```
+   ```bash
    ./gradlew clean build -x test
    ```
 
 4. To debug package with a remote debugger:
-   ```
+   ```bash
    ./gradlew clean build -Pdebug=<port>
    ```
 
 5. To debug with the Ballerina language:
-   ```
+   ```bash
    ./gradlew clean build -PbalJavaDebug=<port>
    ```
 
 6. Publish the generated artifacts to the local Ballerina Central repository:
-    ```
+    ```bash
     ./gradlew clean build -PpublishToLocalCentral=true
     ```
 
 7. Publish the generated artifacts to the Ballerina Central repository:
-   ```
+   ```bash
    ./gradlew clean build -PpublishToCentral=true
    ```
 

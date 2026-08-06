@@ -27,6 +27,9 @@ configurable string streamArn = os:getEnv("STREAM_ARN");
 // Where the last committed sequence number of each shard is stored.
 const string CHECKPOINT_DIR = "./checkpoints";
 
+// Stored in place of a sequence number once a shard has been closed and fully read.
+const string SHARD_COMPLETED = "COMPLETED";
+
 public function main() returns error? {
     // `DEFAULT_CREDENTIALS` resolves credentials from the environment.
     dynamodbstreams:Client dynamodbStreams = check new ({
@@ -34,8 +37,7 @@ public function main() returns error? {
         region: region is "" ? aws:US_EAST_1 : region
     });
 
-    dynamodbstreams:StreamDescription description = check dynamodbStreams->describeStream({streamArn});
-    dynamodbstreams:Shard[] shards = check description.shards.ensureType();
+    dynamodbstreams:Shard[] shards = check collectShards(dynamodbStreams, streamArn);
     io:println(string `Stream ${streamArn} has ${shards.length()} shard(s)`);
 
     foreach dynamodbstreams:Shard shard in shards {
@@ -50,6 +52,11 @@ isolated function consumeShard(dynamodbstreams:Client dynamodbStreams, dynamodbs
 
     // The checkpoint is the sequence number of the last record handled — not a shard iterator.
     string? checkpoint = check loadCheckpoint(shardId);
+    if checkpoint == SHARD_COMPLETED {
+        io:println(string `Shard ${shardId}: already completed, skipping`);
+        return;
+    }
+
     string? shardIterator;
     if checkpoint is string {
         io:println(string `Shard ${shardId}: resuming after sequence number ${checkpoint}`);
@@ -113,7 +120,7 @@ isolated function consumeShard(dynamodbstreams:Client dynamodbStreams, dynamodbs
     if shardIterator is () {
         // No next iterator means the shard is closed and fully read; its children carry on from here.
         io:println(string `Shard ${shardId}: closed and fully read (${processed} record(s))`);
-        check file:remove(check checkpointPath(shardId), file:RECURSIVE);
+        check saveCheckpoint(shardId, SHARD_COMPLETED);
     } else {
         io:println(string `Shard ${shardId}: ${processed} record(s) processed, position committed`);
     }
@@ -130,9 +137,37 @@ isolated function loadCheckpoint(string shardId) returns string?|error {
     return (check io:fileReadString(path)).trim();
 }
 
-isolated function saveCheckpoint(string shardId, string sequenceNumber) returns error? {
+isolated function saveCheckpoint(string shardId, string state) returns error? {
     if !check file:test(CHECKPOINT_DIR, file:EXISTS) {
         check file:createDir(CHECKPOINT_DIR, file:RECURSIVE);
     }
-    check io:fileWriteString(check checkpointPath(shardId), sequenceNumber);
+    check io:fileWriteString(check checkpointPath(shardId), state);
+}
+
+# `describeStream` returns at most 100 shards per call. A `lastEvaluatedShardId` on the result means there are more,
+# so a consumer that wants the whole stream has to page through them.
+#
+# + dynamodbStreams - The client to read through
+# + streamArn - The stream whose shards are collected
+# + return - Every shard of the stream, or an `error` if a page cannot be read
+isolated function collectShards(dynamodbstreams:Client dynamodbStreams, string streamArn)
+        returns dynamodbstreams:Shard[]|error {
+    dynamodbstreams:Shard[] shards = [];
+    string? exclusiveStartShardId = ();
+    while true {
+        dynamodbstreams:DescribeStreamInput request = {streamArn};
+        if exclusiveStartShardId is string {
+            request.exclusiveStartShardId = exclusiveStartShardId;
+        }
+        dynamodbstreams:StreamDescription description = check dynamodbStreams->describeStream(request);
+        dynamodbstreams:Shard[]? page = description?.shards;
+        if page is dynamodbstreams:Shard[] {
+            shards.push(...page);
+        }
+        exclusiveStartShardId = description?.lastEvaluatedShardId;
+        if exclusiveStartShardId !is string {
+            break;
+        }
+    }
+    return shards;
 }

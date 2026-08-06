@@ -45,6 +45,8 @@ Write to the table, then run it again: the second run picks up only the records 
 checkpoint doing its job.
 
 > **Note:** checkpoints are kept in `./checkpoints` to keep the example self-contained. A production consumer would
-> store them wherever it already keeps durable state. A `TrimmedDataAccessException` means the checkpointed record has
-> aged past the 24-hour retention window, so the shard restarts from the trim horizon — that is the only position
-> failure a sequence-number checkpoint can hit.
+> store them wherever it already keeps durable state. Once a shard is closed and fully read, a `COMPLETED` marker is
+> stored in place of the sequence number rather than the state being deleted — a closed shard stays listed for the rest
+> of the retention window, so without the marker a later run would find no state and re-read it in full. A
+> `TrimmedDataAccessException` means the checkpointed record has aged past the 24-hour retention window, so the shard
+> restarts from the trim horizon — that is the only position failure a sequence-number checkpoint can hit.

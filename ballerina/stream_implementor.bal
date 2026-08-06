@@ -87,10 +87,15 @@ class RecordIterator {
         self.fetchPage = fetchPage;
         self.shardIterator = request.shardIterator;
         self.recordLimit = request?.'limit;
-        self.initialPollInterval = request.pollInterval;
-        self.pollInterval = request.pollInterval;
-        self.maxPollInterval = request.maxPollInterval;
         self.maxIdlePolls = request?.maxIdlePolls;
+        decimal maxInterval = request.maxPollInterval > 0d ? request.maxPollInterval : DEFAULT_MAX_POLL_INTERVAL;
+        decimal interval = request.pollInterval > 0d ? request.pollInterval : DEFAULT_POLL_INTERVAL;
+        if interval > maxInterval {
+            interval = maxInterval;
+        }
+        self.maxPollInterval = maxInterval;
+        self.initialPollInterval = interval;
+        self.pollInterval = interval;
     }
 
     public isolated function next() returns record {|Record value;|}|Error? {

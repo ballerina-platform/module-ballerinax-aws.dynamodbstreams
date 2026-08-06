@@ -46,8 +46,7 @@ public function main() returns error? {
     }
     io:println("Reading order changes from ", streamArn);
 
-    dynamodbstreams:StreamDescription description = check dynamodbStreams->describeStream({streamArn});
-    dynamodbstreams:Shard[] shards = check description.shards.ensureType();
+    dynamodbstreams:Shard[] shards = check collectShards(dynamodbStreams, streamArn);
 
     foreach dynamodbstreams:Shard shard in shards {
         string shardId = check shard.shardId.ensureType();
@@ -104,4 +103,32 @@ isolated function processOrderChange(dynamodbstreams:Record 'record) returns err
 isolated function statusOf(map<dynamodbstreams:AttributeValue> image) returns string {
     dynamodbstreams:AttributeValue? status = image["Status"];
     return status?.s ?: "<unset>";
+}
+
+# `describeStream` returns at most 100 shards per call. A `lastEvaluatedShardId` on the result means there are more,
+# so a consumer that wants the whole stream has to page through them.
+#
+# + dynamodbStreams - The client to read through
+# + streamArn - The stream whose shards are collected
+# + return - Every shard of the stream, or an `error` if a page cannot be read
+isolated function collectShards(dynamodbstreams:Client dynamodbStreams, string streamArn)
+        returns dynamodbstreams:Shard[]|error {
+    dynamodbstreams:Shard[] shards = [];
+    string? exclusiveStartShardId = ();
+    while true {
+        dynamodbstreams:DescribeStreamInput request = {streamArn};
+        if exclusiveStartShardId is string {
+            request.exclusiveStartShardId = exclusiveStartShardId;
+        }
+        dynamodbstreams:StreamDescription description = check dynamodbStreams->describeStream(request);
+        dynamodbstreams:Shard[]? page = description?.shards;
+        if page is dynamodbstreams:Shard[] {
+            shards.push(...page);
+        }
+        exclusiveStartShardId = description?.lastEvaluatedShardId;
+        if exclusiveStartShardId !is string {
+            break;
+        }
+    }
+    return shards;
 }

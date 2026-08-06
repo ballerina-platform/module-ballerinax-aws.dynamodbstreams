@@ -53,8 +53,8 @@ public isolated client class Client {
             self.host = aws:resolveEndpointHost(SERVICE_NAME, config.region);
             baseURL = aws:resolveEndpoint(SERVICE_NAME, config.region);
         }
-        self.streamClient = check new (baseURL, httpClientConfig);
         self.credentialProvider = check new (config.auth);
+        self.streamClient = check new (baseURL, httpClientConfig);
     }
 
     # Returns the stream ARNs associated with the current account and endpoint. If `tableName` is given, only the

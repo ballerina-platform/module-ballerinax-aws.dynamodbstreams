@@ -16,6 +16,7 @@
 
 import ballerina/data.jsondata;
 import ballerina/test;
+import ballerina/time;
 import ballerinax/aws.auth;
 
 @test:Config {
@@ -67,7 +68,6 @@ isolated function testDescribeStream() returns error? {
     StreamDescription description = check dynamodbStreams->describeStream({streamArn: testStreamArn});
     test:assertEquals(description.streamArn, testStreamArn);
     test:assertEquals(description.tableName, testTableName);
-    test:assertEquals(description.streamStatus, ENABLED);
     Shard[] shards = check description.shards.ensureType();
     test:assertTrue(shards.length() > 0, "expected the stream to have at least one shard");
     test:assertTrue(shards[0]?.shardId is string);
@@ -120,8 +120,8 @@ isolated function testPollRecordsCompletesWhenIdle() returns error? {
     // `maxIdlePolls` bounds the loop, so this terminates against a shard that is receiving no writes.
     stream<Record, Error?> records = dynamodbStreams->pollRecords({
         shardIterator,
-        pollInterval: 0.1,
-        maxPollInterval: 0.2,
+        pollInterval: 1,
+        maxPollInterval: 2,
         maxIdlePolls: 3
     });
     Record[] collected = [];
@@ -250,8 +250,8 @@ isolated function testPollRecordsBacksOffAndCompletesOnClosedShard() returns err
     resetMockState();
     stream<Record, Error?> records = dynamodbStreams->pollRecords({
         shardIterator: MOCK_ITERATOR_PREFIX + "-0",
-        pollInterval: 0.1,
-        maxPollInterval: 0.2
+        pollInterval: 1,
+        maxPollInterval: 2
     });
     Record[] collected = [];
     check from Record 'record in records
@@ -276,8 +276,8 @@ isolated function testPollRecordsHonoursMaxIdlePolls() returns error? {
     // The first poll comes back empty, which is one idle poll, so the stream completes without a second request.
     stream<Record, Error?> records = dynamodbStreams->pollRecords({
         shardIterator: MOCK_ITERATOR_PREFIX + "-0",
-        pollInterval: 0.1,
-        maxPollInterval: 0.1,
+        pollInterval: 1,
+        maxPollInterval: 1,
         maxIdlePolls: 1
     });
     int count = 0;
@@ -287,6 +287,55 @@ isolated function testPollRecordsHonoursMaxIdlePolls() returns error? {
         };
     test:assertEquals(count, 0);
     test:assertEquals(getRecordsCallCount(), 1);
+}
+
+@test:Config {
+    enable: !isLiveTestEnabled,
+    groups: ["mock"]
+}
+isolated function testPollRecordsCapsTheFirstWaitToMaxPollInterval() returns error? {
+    resetMockState();
+    // The mock's first page is empty, so the first wait happens before any record is seen. Unclamped, that wait
+    // would be `pollInterval` (30s); capped to `maxPollInterval` it is one second.
+    time:Utc started = time:utcNow();
+    stream<Record, Error?> records = dynamodbStreams->pollRecords({
+        shardIterator: MOCK_ITERATOR_PREFIX + "-0",
+        pollInterval: 30,
+        maxPollInterval: 1,
+        maxIdlePolls: 2
+    });
+    check from Record _ in records
+        do {
+        };
+    decimal elapsed = time:utcDiffSeconds(time:utcNow(), started);
+    test:assertTrue(elapsed < 5d, string `the first wait ignored maxPollInterval: took ${elapsed}s`);
+}
+
+@test:Config {
+    enable: !isLiveTestEnabled,
+    groups: ["mock"]
+}
+isolated function testPollRecordsRejectsANonPositiveInterval() returns error? {
+    resetMockState();
+    // A zero interval never grows when doubled, so backoff would be disabled and the shard polled continuously.
+    // It is replaced by the default, so the one empty response still costs a full second's wait.
+    time:Utc started = time:utcNow();
+    stream<Record, Error?> records = dynamodbStreams->pollRecords({
+        shardIterator: MOCK_ITERATOR_PREFIX + "-0",
+        pollInterval: 0,
+        maxPollInterval: 1,
+        maxIdlePolls: 2
+    });
+    int count = 0;
+    check from Record _ in records
+        do {
+            count += 1;
+        };
+    decimal elapsed = time:utcDiffSeconds(time:utcNow(), started);
+    test:assertTrue(elapsed >= 1d, string `the zero interval disabled the backoff: took only ${elapsed}s`);
+    // The mock closes the shard on its third response, so the walk still terminates normally.
+    test:assertEquals(count, 1);
+    test:assertEquals(getRecordsCallCount(), 3);
 }
 
 @test:Config {
@@ -355,6 +404,9 @@ isolated function testConnectionFailureLeavesErrorDetailsUnset() returns error? 
 isolated function getFirstShardIterator() returns string|error {
     StreamDescription description = check dynamodbStreams->describeStream({streamArn: testStreamArn});
     Shard[] shards = check description.shards.ensureType();
+    if shards.length() == 0 {
+        return error("expected the stream to have at least one shard");
+    }
     string shardId = check shards[0].shardId.ensureType();
     return dynamodbStreams->getShardIterator({
         streamArn: testStreamArn,

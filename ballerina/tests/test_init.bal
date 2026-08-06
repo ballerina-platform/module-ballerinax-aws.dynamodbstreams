@@ -27,8 +27,8 @@ final string accessKeyId = os:getEnv("BALLERINA_AWS_TEST_ACCESS_KEY_ID");
 final string secretAccessKey = os:getEnv("BALLERINA_AWS_TEST_SECRET_ACCESS_KEY");
 final string profileName = os:getEnv("BALLERINA_AWS_TEST_PROFILE_NAME");
 final string credentialsFilePath = os:getEnv("BALLERINA_AWS_TEST_CREDENTIALS_FILE");
-
-final readonly & aws:Region awsRegion = aws:US_EAST_1;
+final string configuredRegion = os:getEnv("BALLERINA_AWS_TEST_REGION");
+final string awsRegion = configuredRegion != "" ? configuredRegion : aws:US_EAST_1;
 
 final readonly & auth:StaticAuthConfig staticAuth = {
     accessKeyId,
@@ -43,7 +43,8 @@ final readonly & auth:ProfileAuthConfig profileAuth = {
 // Running live needs a credential source plus the table and stream to read from.
 final boolean isLiveTestEnabled = os:getEnv("BALLERINA_AWS_DDBSTREAMS_TEST_TABLE") != "" &&
     os:getEnv("BALLERINA_AWS_DDBSTREAMS_TEST_STREAM_ARN") != "" &&
-    (authType == "default" || authType == "profile" || (accessKeyId != "" && secretAccessKey != ""));
+    (authType == "default" || (authType == "profile" && profileName != "" && credentialsFilePath != "")
+        || (accessKeyId != "" && secretAccessKey != ""));
 
 // The table and stream under test: the environment's when running live, the mock's fixtures otherwise.
 final string testTableName = isLiveTestEnabled ? os:getEnv("BALLERINA_AWS_DDBSTREAMS_TEST_TABLE") : "Orders";

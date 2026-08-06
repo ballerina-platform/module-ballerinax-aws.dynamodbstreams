@@ -39,3 +39,7 @@ const string CONTENT_TYPE_HEADER = "content-type";
 const string TARGET_HEADER = "x-amz-target";
 const string REQUEST_ID_HEADER = "x-amzn-RequestId";
 
+// Default pacing for `pollRecords`, also used as the fallback when a non-positive interval is supplied.
+const decimal DEFAULT_POLL_INTERVAL = 1;
+const decimal DEFAULT_MAX_POLL_INTERVAL = 20;
+
