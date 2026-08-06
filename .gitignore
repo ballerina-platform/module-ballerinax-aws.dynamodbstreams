@@ -12,6 +12,7 @@
 
 # Package Files #
 *.jar
+!gradle-wrapper/*.jar
 *.war
 *.nar
 *.ear
@@ -21,9 +22,27 @@
 
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
-replay_pid*
 
-.gradle/
+# idea files
+*.idea
+
+# .ballerina files
+*.ballerina
+.DS_Store
+
+# Ignore Gradle project-specific cache directory
+.gradle
+
+# Ignore Gradle build output directories
+build
+target
+
+# Ballerina configuartion file
+Config.toml
+/ballerina/docker.env
+
+# Environment files
+*.env
 
 # Ignore installers and archives
 *.deb

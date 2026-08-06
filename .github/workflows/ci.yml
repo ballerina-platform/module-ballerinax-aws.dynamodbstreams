@@ -1,4 +1,4 @@
-name: CI
+name: Build
 
 on:
   push:
@@ -16,3 +16,5 @@ jobs:
     secrets: inherit
     with:
       repo-name: module-ballerinax-aws.dynamodbstreams
+      additional-build-flags: "-x :aws.dynamodbstreams-examples:build"
+      additional-test-flags: "-x :aws.dynamodbstreams-examples:test"

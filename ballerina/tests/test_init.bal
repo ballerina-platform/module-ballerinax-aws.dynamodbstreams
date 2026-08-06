@@ -1,0 +1,67 @@
+// Copyright (c) 2026, WSO2 LLC. (http://www.wso2.com).
+//
+// WSO2 LLC. licenses this file to you under the Apache License,
+// Version 2.0 (the "License"); you may not use this file except
+// in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing,
+// software distributed under the License is distributed on an
+// "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+// KIND, either express or implied.  See the License for the
+// specific language governing permissions and limitations
+// under the License.
+
+// The suite runs against a real DynamoDB stream when the environment supplies credentials plus a stream to read,
+// and against the local mock service (`mock_service.bal`) otherwise. The tests are the same either way, so
+// everything an assertion depends on is defined here and echoed back by the mock.
+
+import ballerina/os;
+import ballerinax/aws;
+import ballerinax/aws.auth;
+
+final string authType = os:getEnv("BALLERINA_AWS_TEST_AUTH_TYPE");
+final string accessKeyId = os:getEnv("BALLERINA_AWS_TEST_ACCESS_KEY_ID");
+final string secretAccessKey = os:getEnv("BALLERINA_AWS_TEST_SECRET_ACCESS_KEY");
+final string profileName = os:getEnv("BALLERINA_AWS_TEST_PROFILE_NAME");
+final string credentialsFilePath = os:getEnv("BALLERINA_AWS_TEST_CREDENTIALS_FILE");
+final string configuredRegion = os:getEnv("BALLERINA_AWS_TEST_REGION");
+final string awsRegion = configuredRegion != "" ? configuredRegion : aws:US_EAST_1;
+
+final readonly & auth:StaticAuthConfig staticAuth = {
+    accessKeyId,
+    secretAccessKey
+};
+
+final readonly & auth:ProfileAuthConfig profileAuth = {
+    profileName,
+    credentialsFilePath
+};
+
+// Running live needs a credential source plus the table and stream to read from.
+final boolean isLiveTestEnabled = os:getEnv("BALLERINA_AWS_DDBSTREAMS_TEST_TABLE") != "" &&
+    os:getEnv("BALLERINA_AWS_DDBSTREAMS_TEST_STREAM_ARN") != "" &&
+    (authType == "default" || (authType == "profile" && profileName != "" && credentialsFilePath != "")
+        || (accessKeyId != "" && secretAccessKey != ""));
+
+// The table and stream under test: the environment's when running live, the mock's fixtures otherwise.
+final string testTableName = isLiveTestEnabled ? os:getEnv("BALLERINA_AWS_DDBSTREAMS_TEST_TABLE") : "Orders";
+final string testStreamArn = isLiveTestEnabled ? os:getEnv("BALLERINA_AWS_DDBSTREAMS_TEST_STREAM_ARN")
+    : "arn:aws:dynamodb:us-east-1:123456789012:table/Orders/stream/2026-01-01T00:00:00.000";
+
+final Client dynamodbStreams = check initClient();
+
+isolated function initClient() returns Client|error {
+    if !isLiveTestEnabled {
+        return newMockClient();
+    }
+    if authType == "default" {
+        return new ({region: awsRegion, auth: auth:DEFAULT_CREDENTIALS});
+    }
+    if authType == "profile" {
+        return new ({region: awsRegion, auth: profileAuth});
+    }
+    return new ({region: awsRegion, auth: staticAuth});
+}

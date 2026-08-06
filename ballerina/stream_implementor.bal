@@ -1,6 +1,6 @@
-// Copyright (c) 2024 WSO2 LLC. (http://www.wso2.org) All Rights Reserved.
+// Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com).
 //
-// WSO2 Inc. licenses this file to you under the Apache License,
+// WSO2 LLC. licenses this file to you under the Apache License,
 // Version 2.0 (the "License"); you may not use this file except
 // in compliance with the License.
 // You may obtain a copy of the License at
@@ -14,139 +14,132 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import ballerina/http;
+import ballerina/lang.runtime;
 
-class ListStream {
-    private Stream[] currentEntries = [];
+# Fetches a single page of streams.
+type ListStreamsPageFetcher isolated function (ListStreamsInput request) returns ListStreamsOutput|Error;
+
+# Fetches a single page of stream records.
+type GetRecordsPageFetcher isolated function (GetRecordsInput request) returns GetRecordsOutput|Error;
+
+# Iterates over every stream of the result set, fetching the next page only once the current one is exhausted.
+class StreamIterator {
+    private final ListStreamsPageFetcher fetchPage;
+    private final ListStreamsInput request;
+    private Stream[] currentPage = [];
     private int index = 0;
-    private final http:Client httpClient;
-    private final string accessKeyId;
-    private final string secretAccessKey;
-    private final string region;
-    private final string awsHost;
-    private final string uri = SLASH;
-    private string? lastEvaluatedStreamArn;
-    private ListStreamsInput listStreamInput;
+    private string? nextStartStreamArn = ();
+    private boolean exhausted = false;
 
-    isolated function init(http:Client httpClient, string host, string accessKey, string secretKey, string region, ListStreamsInput streamInput)
-                           returns error? {
-        self.httpClient = httpClient;
-        self.accessKeyId = accessKey;
-        self.secretAccessKey = secretKey;
-        self.region = region;
-        self.awsHost = AWS_STREAMS_SERVICE + DOT + self.region + DOT + AWS_HOST;
-        self.lastEvaluatedStreamArn = null;
-        self.listStreamInput = streamInput;
-        self.currentEntries = check self.fetchStreams();
+    isolated function init(ListStreamsInput request, ListStreamsPageFetcher fetchPage) {
+        self.request = request.clone();
+        self.fetchPage = fetchPage;
     }
 
-    public isolated function next() returns record {| Stream value; |}|error? {
-        if self.index < self.currentEntries.length() {
-            record {| Stream value; |} 'stream = {value: self.currentEntries[self.index]};
-            self.index += 1;
-            return 'stream;
-        }
-        if self.lastEvaluatedStreamArn is string {
-            self.index = 0;
-            self.currentEntries = check self.fetchStreams();
-            record {| Stream value; |} streamName = {value: self.currentEntries[self.index]};
-            self.index += 1;
-            return streamName;
-        }
-        return ();
-    }
-
-    isolated function fetchStreams() returns Stream[]|error {
-        string target = STREAMS_VERSION + DOT +"ListStreams";
-        ListStreamsInput request = {
-            tableName: self.listStreamInput.tableName,
-            exclusiveStartStreamArn: self.lastEvaluatedStreamArn,
-            'limit: self.listStreamInput.'limit
-        };
-        json payload = check request.cloneWithType(json);
-        convertJsonKeysToUpperCase(payload);
-        map<string> signedRequestHeaders = check getSignedRequestHeaders(self.awsHost, self.accessKeyId,
-                                                                         self.secretAccessKey, self.region,
-                                                                         POST, self.uri, target, payload);                                 
-        json tableListResp = check self.httpClient->post(self.uri, payload, signedRequestHeaders);
-        convertJsonKeysToCamelCase(tableListResp);
-        ListStreamsOutput response = check tableListResp.cloneWithType(ListStreamsOutput);
-        self.lastEvaluatedStreamArn = response?.lastEvaluatedStreamArn;
-        Stream[]? streamList = response?.streams;
-        if streamList is Stream[] {
-            return streamList;
-        }
-        return [];
-    }
-}
-
-class RecordsStream {
-    private Record[] currentEntries = [];
-    private int index = 0;
-    private final http:Client httpClient;
-    private final string accessKeyId;
-    private final string secretAccessKey;
-    private final string region;
-    private final string awsHost;
-    private final string uri = SLASH;
-    private string? nextShardIterator;
-    private GetRecordsInput getRecordsInput;
-
-    isolated function init(http:Client httpClient, string host, string accessKey, string secretKey, string region, GetRecordsInput getRecordsInput)
-                           returns error? {
-        self.httpClient = httpClient;
-        self.accessKeyId = accessKey;
-        self.secretAccessKey = secretKey;
-        self.region = region;
-        self.awsHost = AWS_STREAMS_SERVICE + DOT + self.region + DOT + AWS_HOST;
-        self.nextShardIterator = null;
-        self.getRecordsInput = getRecordsInput;
-        self.currentEntries = check self.fetchRecords();
-    }
-
-    public isolated function next() returns record {| Record value; |}|error? {
-        if self.index < self.currentEntries.length() {
-            record {| Record value; |} 'record = {value: self.currentEntries[self.index]};
-            self.index += 1;
-            return 'record;
-        }
-        if self.nextShardIterator is string {
-            self.index = 0;
-            Record[]|error fetchRecordsResult = self.fetchRecords();
-            if fetchRecordsResult is Record[] && fetchRecordsResult.length() > 0 {
-                self.currentEntries = fetchRecordsResult;
-            } else {
-                return ();
+    public isolated function next() returns record {|Stream value;|}|Error? {
+        // Keep fetching until a page yields a value or the result set is exhausted. A page can legitimately come
+        // back empty while still carrying a continuation token, so the emptiness of one page must not be mistaken
+        // for the end of the result set — nor may an empty page be indexed into.
+        while self.index >= self.currentPage.length() {
+            if self.exhausted {
+                return;
             }
-            record {| Record value; |} 'record = {value: self.currentEntries[self.index]};
-            self.index += 1;
-            return 'record;
+            check self.fetchNextPage();
         }
-        return ();
+        record {|Stream value;|} next = {value: self.currentPage[self.index]};
+        self.index += 1;
+        return next;
     }
 
-    isolated function fetchRecords() returns Record[]|error {
-        string target = STREAMS_VERSION + DOT +"GetRecords";
-        GetRecordsInput request = self.getRecordsInput;
-        json payload = check request.cloneWithType(json);
-        convertJsonKeysToUpperCase(payload);
-        map<string> signedRequestHeaders = check getSignedRequestHeaders(self.awsHost, self.accessKeyId,
-                                                                         self.secretAccessKey, self.region,
-                                                                         POST, self.uri, target, payload);                                                        
-        json response = check self.httpClient->post(self.uri, payload, signedRequestHeaders);
-        convertJsonKeysToCamelCase(response);
-        GetRecordsOutput records = check response.cloneWithType(GetRecordsOutput);
-        self.nextShardIterator = records?.nextShardIterator;
-        if self.nextShardIterator is string {
-            self.getRecordsInput.shardIterator = <string>self.nextShardIterator;
+    private isolated function fetchNextPage() returns Error? {
+        ListStreamsInput request = self.request.clone();
+        string? startStreamArn = self.nextStartStreamArn;
+        if startStreamArn is string {
+            request.exclusiveStartStreamArn = startStreamArn;
         }
-        Record[]? recordList = records?.'records;
-        if recordList is Record[] && recordList.length() > 0 {
-            return recordList;
-        } else if records.hasKey("nextShardIterator") && self.nextShardIterator is string {
-            return self.fetchRecords();
-        }
-        return [];
+
+        ListStreamsOutput page = check self.fetchPage(request);
+        self.currentPage = page.streams;
+        self.index = 0;
+        self.nextStartStreamArn = page?.lastEvaluatedStreamArn;
+        // Absent `lastEvaluatedStreamArn` means this was the final page.
+        self.exhausted = self.nextStartStreamArn !is string;
     }
 }
 
+# Polls a single shard and iterates over the stream records it yields, backing off between empty polls.
+#
+# This iterator never crosses a shard boundary: it completes once the shard is closed and fully read, leaving the
+# child shards to the caller.
+class RecordIterator {
+    private final GetRecordsPageFetcher fetchPage;
+    private final int? recordLimit;
+    private final decimal initialPollInterval;
+    private final decimal maxPollInterval;
+    private final int? maxIdlePolls;
+    private Record[] currentPage = [];
+    private int index = 0;
+    private string? shardIterator;
+    private decimal pollInterval;
+    private int idlePolls = 0;
+
+    isolated function init(PollRecordsInput request, GetRecordsPageFetcher fetchPage) {
+        self.fetchPage = fetchPage;
+        self.shardIterator = request.shardIterator;
+        self.recordLimit = request?.'limit;
+        self.maxIdlePolls = request?.maxIdlePolls;
+        decimal maxInterval = request.maxPollInterval > 0d ? request.maxPollInterval : DEFAULT_MAX_POLL_INTERVAL;
+        decimal interval = request.pollInterval > 0d ? request.pollInterval : DEFAULT_POLL_INTERVAL;
+        if interval > maxInterval {
+            interval = maxInterval;
+        }
+        self.maxPollInterval = maxInterval;
+        self.initialPollInterval = interval;
+        self.pollInterval = interval;
+    }
+
+    public isolated function next() returns record {|Record value;|}|Error? {
+        while self.index >= self.currentPage.length() {
+            string? shardIterator = self.shardIterator;
+            // An absent next shard iterator means the shard has been closed and fully read.
+            if shardIterator !is string {
+                return;
+            }
+            if self.idlePolls > 0 {
+                int? maxIdlePolls = self.maxIdlePolls;
+                if maxIdlePolls is int && self.idlePolls >= maxIdlePolls {
+                    return;
+                }
+                // Back off before re-polling a shard that returned nothing, so that tailing a quiet shard (the
+                // common case with the `LATEST` iterator type) does not spin against the service.
+                runtime:sleep(self.pollInterval);
+                decimal nextInterval = self.pollInterval * 2;
+                self.pollInterval = nextInterval > self.maxPollInterval ? self.maxPollInterval : nextInterval;
+            }
+            check self.fetchNextPage(shardIterator);
+        }
+        record {|Record value;|} next = {value: self.currentPage[self.index]};
+        self.index += 1;
+        return next;
+    }
+
+    private isolated function fetchNextPage(string shardIterator) returns Error? {
+        GetRecordsInput request = {shardIterator: shardIterator};
+        int? recordLimit = self.recordLimit;
+        if recordLimit is int {
+            request.'limit = recordLimit;
+        }
+
+        GetRecordsOutput page = check self.fetchPage(request);
+        self.currentPage = page.records;
+        self.index = 0;
+        self.shardIterator = page?.nextShardIterator;
+
+        if self.currentPage.length() == 0 {
+            self.idlePolls += 1;
+        } else {
+            self.idlePolls = 0;
+            self.pollInterval = self.initialPollInterval;
+        }
+    }
+}

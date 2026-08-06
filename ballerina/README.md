@@ -1,14 +1,18 @@
-# Ballerina Amazon DynamoDB Streams Connector
-
-[![Build](https://github.com/ballerina-platform/module-ballerinax-aws.dynamodbstreams/actions/workflows/ci.yml/badge.svg)](https://github.com/ballerina-platform/module-ballerinax-aws.dynamodbstreams/actions/workflows/ci.yml)
-[![codecov](https://codecov.io/gh/ballerina-platform/module-ballerinax-aws.dynamodbstreams/branch/main/graph/badge.svg)](https://codecov.io/gh/ballerina-platform/module-ballerinax-aws.dynamodbstreams)
-[![GitHub Last Commit](https://img.shields.io/github/last-commit/ballerina-platform/module-ballerinax-aws.dynamodbstreams.svg)](https://github.com/ballerina-platform/module-ballerinax-aws.dynamodbstreams/commits/main)
-[![GitHub Issues](https://img.shields.io/github/issues/ballerina-platform/ballerina-library/module/aws.dynamodbstreams.svg?label=Open%20Issues)](https://github.com/ballerina-platform/ballerina-library/labels/module%2Faws.dynamodbstreams)
-
-
 ## Overview
 
-The `ballerinax/aws.dynamodbstreams` package offers APIs to connect and interact with the [AWS DynamoDB Streams API](https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_Operations_Amazon_DynamoDB_Streams.html) endpoints, covering all four of its operations: `ListStreams`, `DescribeStream`, `GetShardIterator`, and `GetRecords`.
+[Amazon DynamoDB Streams](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Streams.html) captures a time-ordered sequence of item-level modifications made to an [Amazon DynamoDB](https://aws.amazon.com/dynamodb/) table and stores them for up to 24 hours, so applications can react to data changes in near real time. Each modification produces one stream record, and the records of a stream are distributed across shards that a consumer reads through shard iterators.
+
+The Amazon DynamoDB Streams connector offers APIs to connect and interact with the [AWS DynamoDB Streams API](https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_Operations_Amazon_DynamoDB_Streams.html) endpoints.
+
+### Key features
+
+- Complete coverage of the DynamoDB Streams API: `ListStreams`, `DescribeStream`, `GetShardIterator`, and `GetRecords`
+- Checkpointable shard reads — `getRecords` surfaces the next shard iterator, and every record carries its sequence number, so a restarted consumer can resume exactly where it stopped
+- One remote method per AWS operation, plus `pollRecords` to tail a shard and an auto-paginating Ballerina stream for `listStreams`
+- Typed change data: item images and keys are attribute-name keyed maps of `AttributeValue`
+- Flexible credential configuration: static keys, AWS credentials file profiles, STS assume-role, web identity (OIDC), IAM Identity Center (SSO), an external credential process, or the default AWS credential provider chain (EKS Pod Identity, ECS task roles, EC2 instance profiles, environment variables)
+- Automatic refresh of expiring temporary credentials
+- FIPS, dualstack, and custom endpoint support
 
 ## Setup guide
 
@@ -168,76 +172,3 @@ The `aws.dynamodbstreams` connector provides practical examples illustrating usa
 
 2. [Checkpointed shard consumer](https://github.com/ballerina-platform/module-ballerinax-aws.dynamodbstreams/tree/main/examples/shard-checkpointing)
    This example shows how to read a stream with `getRecords`, persisting each record's sequence number so that a restarted consumer resumes where it stopped. It runs on the default credential provider chain, so it works unchanged on EC2, ECS, and EKS.
-
-## Build from the source
-
-### Prerequisites
-
-1. Download and install Java SE Development Kit (JDK) version 21. You can download it from either of the following sources:
-
-    * [Oracle JDK](https://www.oracle.com/java/technologies/downloads/)
-    * [OpenJDK](https://adoptium.net/)
-
-   > **Note:** After installation, remember to set the `JAVA_HOME` environment variable to the directory where JDK was installed.
-
-2. Download and install [Ballerina Swan Lake](https://ballerina.io/).
-
-3. Download and install [Docker](https://www.docker.com/get-started).
-
-   > **Note**: Ensure that the Docker daemon is running before executing any tests.
-
-### Build options
-
-Execute the commands below to build from the source.
-
-1. To build the package:
-   ```bash
-   ./gradlew clean build
-   ```
-
-2. To run the tests:
-   ```bash
-   ./gradlew clean test
-   ```
-
-3. To build the without the tests:
-   ```bash
-   ./gradlew clean build -x test
-   ```
-
-4. To debug package with a remote debugger:
-   ```bash
-   ./gradlew clean build -Pdebug=<port>
-   ```
-
-5. To debug with the Ballerina language:
-   ```bash
-   ./gradlew clean build -PbalJavaDebug=<port>
-   ```
-
-6. Publish the generated artifacts to the local Ballerina Central repository:
-    ```bash
-    ./gradlew clean build -PpublishToLocalCentral=true
-    ```
-
-7. Publish the generated artifacts to the Ballerina Central repository:
-   ```bash
-   ./gradlew clean build -PpublishToCentral=true
-   ```
-
-## Contribute to Ballerina
-
-As an open-source project, Ballerina welcomes contributions from the community.
-
-For more information, go to the [contribution guidelines](https://github.com/ballerina-platform/ballerina-lang/blob/master/CONTRIBUTING.md).
-
-## Code of conduct
-
-All the contributors are encouraged to read the [Ballerina Code of Conduct](https://ballerina.io/code-of-conduct).
-
-## Useful links
-
-* For more information go to the [`aws.dynamodbstreams` package](https://central.ballerina.io/ballerinax/aws.dynamodbstreams/latest).
-* For example demonstrations of the usage, go to [Ballerina By Examples](https://ballerina.io/learn/by-example/).
-* Chat live with us via our [Discord server](https://discord.gg/ballerinalang).
-* Post all technical questions on Stack Overflow with the [#ballerina](https://stackoverflow.com/questions/tagged/ballerina) tag.
