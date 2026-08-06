@@ -108,11 +108,9 @@ dynamodbstreams:Client dynamodbStreams = check new ({
 
 #### Option 3: Default credential provider chain
 
-Use `auth:DEFAULT_CREDENTIALS` to let the connector resolve credentials from the environment. This is the recommended approach for AWS-managed environments, and the only supported one where long-term access keys are unavailable (EC2 instance roles, ECS task roles, EKS Pod Identity/IRSA).
+Use `auth:DEFAULT_CREDENTIALS` in `aws.auth` module to let the connector resolve credentials from the environment. This is the recommended approach for AWS-managed environments, and the only supported one where long-term access keys are unavailable (EC2 instance roles, ECS task roles, EKS Pod Identity/IRSA).
 
 ```ballerina
-import ballerinax/aws.auth;
-
 dynamodbstreams:Client dynamodbStreams = check new ({
     auth: auth:DEFAULT_CREDENTIALS,
     region: aws:US_EAST_1

@@ -16,13 +16,12 @@
 
 import ballerina/file;
 import ballerina/io;
-import ballerina/os;
 import ballerinax/aws;
 import ballerinax/aws.auth;
 import ballerinax/aws.dynamodbstreams;
 
-configurable string region = os:getEnv("AWS_REGION");
-configurable string streamArn = os:getEnv("STREAM_ARN");
+configurable string region = ?;
+configurable string streamArn = ?;
 
 // Where the last committed sequence number of each shard is stored.
 const string CHECKPOINT_DIR = "./checkpoints";
