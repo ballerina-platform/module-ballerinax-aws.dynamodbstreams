@@ -120,6 +120,8 @@ The standard default credential provider chain tries each of the following in or
 3. Container credentials (ECS/EKS)
 4. EC2 instance profile (IMDS)
 
+> **Note:** Beyond the three options above, the `credentials` field also accepts `auth:AssumeRoleConfig` (STS assume-role), `auth:WebIdentityConfig` (web identity / OIDC), `auth:SsoAuthConfig` (IAM Identity Center), and `auth:ProcessAuthConfig` (external credential process). See the [`Ballerina AWS`](https://central.ballerina.io/ballerinax/aws/latest) documentation for details.
+
 ### Step 3: Invoke the connector operation
 
 Reading a stream is a three-step walk: describe the stream to find its shards, get an iterator for a shard, then read records from that position.

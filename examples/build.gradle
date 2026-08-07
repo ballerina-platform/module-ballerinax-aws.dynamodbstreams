@@ -24,7 +24,7 @@ def graalvmFlag = ""
 
 task testExamples {
     gradle.taskGraph.whenReady { graph ->
-        if (graph.hasTask(":aws.dynamodbstreams-examples:test")) {
+        if (graph.hasTask(":aws.dynamodbstreams-examples:build")) {
             testExamples.enabled = false
         }
     }
