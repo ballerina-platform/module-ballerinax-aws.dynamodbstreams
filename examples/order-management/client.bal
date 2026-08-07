@@ -15,14 +15,13 @@
 // under the License.
 
 import ballerina/io;
-import ballerina/os;
 import ballerinax/aws;
 import ballerinax/aws.dynamodbstreams;
 
-configurable string accessKeyId = os:getEnv("AWS_ACCESS_KEY_ID");
-configurable string secretAccessKey = os:getEnv("AWS_SECRET_ACCESS_KEY");
-configurable string region = os:getEnv("AWS_REGION");
-configurable string tableName = os:getEnv("ORDERS_TABLE_NAME");
+configurable string accessKeyId = ?;
+configurable string secretAccessKey = ?;
+configurable string region = ?;
+configurable string tableName = ?;
 
 const int MAX_IDLE_POLLS = 3;
 const decimal MAX_POLL_INTERVAL = 5;

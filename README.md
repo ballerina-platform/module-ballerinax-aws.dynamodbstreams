@@ -104,11 +104,9 @@ dynamodbstreams:Client dynamodbStreams = check new ({
 
 #### Option 3: Default credential provider chain
 
-Use `auth:DEFAULT_CREDENTIALS` to let the connector resolve credentials from the environment. This is the recommended approach for AWS-managed environments, and the only supported one where long-term access keys are unavailable (EC2 instance roles, ECS task roles, EKS Pod Identity/IRSA).
+Use `auth:DEFAULT_CREDENTIALS` in `aws.auth` module to let the connector resolve credentials from the environment. This is the recommended approach for AWS-managed environments, and the only supported one where long-term access keys are unavailable (EC2 instance roles, ECS task roles, EKS Pod Identity/IRSA).
 
 ```ballerina
-import ballerinax/aws.auth;
-
 dynamodbstreams:Client dynamodbStreams = check new ({
     auth: auth:DEFAULT_CREDENTIALS,
     region: aws:US_EAST_1
@@ -121,6 +119,8 @@ The standard default credential provider chain tries each of the following in or
 2. The shared config/credentials file's active profile (`AWS_PROFILE`, or `default` if unset) — which may itself resolve via SSO, an external process, or a chained `AssumeRole` call, depending on that profile's configuration
 3. Container credentials (ECS/EKS)
 4. EC2 instance profile (IMDS)
+
+> **Note:** Beyond the three options above, the `credentials` field also accepts `auth:AssumeRoleConfig` (STS assume-role), `auth:WebIdentityConfig` (web identity / OIDC), `auth:SsoAuthConfig` (IAM Identity Center), and `auth:ProcessAuthConfig` (external credential process). See the [`Ballerina AWS`](https://central.ballerina.io/ballerinax/aws/latest) documentation for details.
 
 ### Step 3: Invoke the connector operation
 

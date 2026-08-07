@@ -23,6 +23,11 @@ apply plugin: 'java'
 def graalvmFlag = ""
 
 task testExamples {
+    gradle.taskGraph.whenReady { graph ->
+        if (graph.hasTask(":aws.dynamodbstreams-examples:build")) {
+            testExamples.enabled = false
+        }
+    }
     if (project.hasProperty("balGraalVMTest")) {
         graalvmFlag = "--graalvm"
     }
@@ -45,13 +50,6 @@ task testExamples {
 }
 
 task buildExamples {
-    gradle.taskGraph.whenReady { graph ->
-        if (graph.hasTask(":aws.dynamodbstreams-examples:test")) {
-            buildExamples.enabled = false
-        } else {
-            testExamples.enabled = false
-        }
-    }
     doLast {
         try {
             exec {
